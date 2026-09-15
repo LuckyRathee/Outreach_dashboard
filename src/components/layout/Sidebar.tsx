@@ -14,10 +14,12 @@ export default function Sidebar() {
     <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
       <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
         <div className="flex h-16 shrink-0 items-center">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">DP</span>
-            </div>
+          <div className="flex items-center gap-3">
+            <img 
+              src="/digital-patron-logo.png" 
+              alt="Digital Patron" 
+              className="h-10 w-auto"
+            />
             <div className="flex flex-col">
               <span className="text-lg font-bold text-gray-900 leading-tight">Digital Patron</span>
               <span className="text-xs text-gray-500 -mt-0.5">Outreach Dashboard</span>

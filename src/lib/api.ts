@@ -13,9 +13,27 @@ import type {
   TemplatePerformance,
 } from './types'
 
-// Environment variables
-const API_URL = (import.meta as any).env?.VITE_ENGINE_API_URL || 'http://localhost:8000'
-const API_TOKEN = (import.meta as any).env?.VITE_ENGINE_API_TOKEN || ''
+// Get API configuration from localStorage or environment
+const getApiConfig = () => {
+  if (typeof window !== 'undefined') {
+    const storedUrl = localStorage.getItem('engine_api_url')
+    const storedToken = localStorage.getItem('engine_api_token')
+    return {
+      url: storedUrl || 'http://localhost:8000',
+      token: storedToken || ''
+    }
+  }
+  return {
+    url: 'http://localhost:8000',
+    token: ''
+  }
+}
+
+const apiConfig = getApiConfig()
+
+// Environment variables (fallback)
+const API_URL = apiConfig.url
+const API_TOKEN = apiConfig.token
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
