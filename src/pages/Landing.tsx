@@ -19,8 +19,8 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-blue-100">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-2xl shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+      <div className="max-w-md w-full space-y-8 p-8 bg-gray-900 rounded-2xl shadow-xl border border-gray-800">
         {/* Logo */}
         <div className="text-center">
           <img 
@@ -28,8 +28,8 @@ export default function Landing() {
             alt="Digital Patron" 
             className="h-24 w-auto mx-auto mb-6"
           />
-          <h2 className="text-3xl font-bold text-gray-900">Welcome to Digital Patron</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <h2 className="text-3xl font-bold text-white">Welcome to Digital Patron</h2>
+          <p className="mt-2 text-sm text-gray-400">
             B2B Tech Lead Outreach Dashboard
           </p>
         </div>
@@ -46,7 +46,7 @@ export default function Landing() {
               value={apiUrl}
               onChange={(e) => setApiUrl(e.target.value)}
               placeholder="http://your-azure-ip:8000"
-              className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="appearance-none relative block w-full px-4 py-3 border border-gray-700 bg-gray-800 placeholder-gray-500 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
           
@@ -60,7 +60,7 @@ export default function Landing() {
               value={apiToken}
               onChange={(e) => setApiToken(e.target.value)}
               placeholder="your-api-token"
-              className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="appearance-none relative block w-full px-4 py-3 border border-gray-700 bg-gray-800 placeholder-gray-500 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
 

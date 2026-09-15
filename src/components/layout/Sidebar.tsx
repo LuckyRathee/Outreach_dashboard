@@ -12,7 +12,7 @@ const navigation = [
 export default function Sidebar() {
   return (
     <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-      <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
+      <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-800 bg-black px-6 pb-4">
         <div className="flex h-16 shrink-0 items-center">
           <div className="flex items-center gap-3">
             <img 
@@ -21,8 +21,8 @@ export default function Sidebar() {
               className="h-10 w-auto"
             />
             <div className="flex flex-col">
-              <span className="text-lg font-bold text-gray-900 leading-tight">Digital Patron</span>
-              <span className="text-xs text-gray-500 -mt-0.5">Outreach Dashboard</span>
+              <span className="text-lg font-bold text-white leading-tight">Digital Patron</span>
+              <span className="text-xs text-gray-400 -mt-0.5">Outreach Dashboard</span>
             </div>
           </div>
         </div>
@@ -37,8 +37,8 @@ export default function Sidebar() {
                       className={({ isActive }) =>
                         clsx(
                           isActive
-                            ? 'bg-gray-50 text-primary-600'
-                            : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50',
+                            ? 'bg-gray-900 text-white'
+                            : 'text-gray-300 hover:text-white hover:bg-gray-900',
                           'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
                         )
                       }
@@ -54,7 +54,7 @@ export default function Sidebar() {
               </ul>
             </li>
             <li className="mt-auto">
-              <div className="text-xs text-gray-400 px-2">
+              <div className="text-xs text-gray-500 px-2">
                 Digital Patron v1.0
               </div>
             </li>
