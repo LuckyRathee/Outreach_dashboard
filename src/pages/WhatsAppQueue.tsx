@@ -5,7 +5,8 @@ import Spinner from '../components/common/Spinner'
 import QueueItem from '../components/whatsapp/QueueItem'
 import QueueStats from '../components/whatsapp/QueueStats'
 import EmptyState from '../components/common/EmptyState'
-import { getWhatsAppQueue, markWhatsAppOpened, markWhatsAppSent } from '../lib/api'
+import { demoAdapter } from '../lib/demoAdapter'
+import { markWhatsAppOpened, markWhatsAppSent } from '../lib/api'
 import { useRefresh } from '../hooks/useRefresh'
 import type { WhatsAppQueueItem } from '../lib/types'
 
@@ -22,7 +23,7 @@ export default function WhatsAppQueue() {
   const fetchQueue = async () => {
     try {
       setLoading(true)
-      const response = await getWhatsAppQueue()
+      const response = await demoAdapter.getWhatsAppQueue()
       setQueue(response.data || [])
     } catch (error) {
       console.error('Failed to fetch WhatsApp queue:', error)

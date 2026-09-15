@@ -4,7 +4,8 @@ import Card from '../components/common/Card'
 import Button from '../components/common/Button'
 import Badge from '../components/common/Badge'
 import Spinner from '../components/common/Spinner'
-import { getLead, markWhatsAppOpened, markWhatsAppSent } from '../lib/api'
+import { demoAdapter } from '../lib/demoAdapter'
+import { markWhatsAppOpened, markWhatsAppSent } from '../lib/api'
 import type { Lead } from '../lib/types'
 
 export default function LeadDetail() {
@@ -21,7 +22,7 @@ export default function LeadDetail() {
   const fetchLead = async () => {
     try {
       setLoading(true)
-      const data = await getLead(id!)
+      const data = await demoAdapter.getLead(id!)
       setLead(data)
     } catch (error) {
       console.error('Failed to fetch lead:', error)

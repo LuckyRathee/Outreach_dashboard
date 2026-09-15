@@ -5,7 +5,8 @@ import EmptyState from '../components/common/EmptyState'
 import FollowUpTabs from '../components/followups/FollowUpTabs'
 import FollowUpItem from '../components/followups/FollowUpItem'
 import RescheduleModal from '../components/followups/RescheduleModal'
-import { getFollowUps, completeFollowUp, rescheduleFollowUp } from '../lib/api'
+import { demoAdapter } from '../lib/demoAdapter'
+import { completeFollowUp, rescheduleFollowUp } from '../lib/api'
 import { useRefresh } from '../hooks/useRefresh'
 import type { FollowUp } from '../lib/types'
 
@@ -28,7 +29,7 @@ export default function FollowUps() {
     try {
       setLoading(true)
       const status = activeTab === 'all' ? undefined : activeTab
-      const response = await getFollowUps(status)
+      const response = await demoAdapter.getFollowUps(status)
       setFollowUps(response.data || [])
     } catch (error) {
       console.error('Failed to fetch follow-ups:', error)
