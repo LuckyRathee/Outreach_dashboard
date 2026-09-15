@@ -18,6 +18,12 @@ export default function Landing() {
     }
   }
 
+  const handleSkip = () => {
+    // Set placeholder URL to skip configuration
+    localStorage.setItem('engine_api_url', 'http://localhost:8000')
+    window.location.reload()
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
       <div className="max-w-md w-full space-y-8 p-8 bg-gray-900 rounded-2xl shadow-xl border border-gray-800">
@@ -64,9 +70,18 @@ export default function Landing() {
             />
           </div>
 
-          <Button onClick={handleConnect} className="w-full py-3">
-            Connect to Engine
-          </Button>
+          <div className="flex gap-3">
+            <Button variant="secondary" onClick={handleSkip} className="flex-1 py-3">
+              Skip
+            </Button>
+            <Button onClick={handleConnect} className="flex-1 py-3">
+              Connect
+            </Button>
+          </div>
+          
+          <p className="text-xs text-gray-500 text-center">
+            You can configure API connection later from the dashboard
+          </p>
         </div>
 
         {/* Footer */}
