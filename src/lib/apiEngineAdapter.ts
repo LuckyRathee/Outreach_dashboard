@@ -10,11 +10,6 @@ import type {
   TemplatePerformance,
 } from './types'
 
-// Check if running locally (development) or on Netlify (production)
-const isLocalDevelopment = () => {
-  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-}
-
 // Get API configuration
 const getApiConfig = () => {
   const apiUrl = localStorage.getItem('engine_api_url') || 'https://hermes-vm.tail5e4a2f.ts.net'
@@ -22,67 +17,61 @@ const getApiConfig = () => {
   return { apiUrl, apiToken }
 }
 
-// API Engine Adapter - Works both locally and in production
+// API Engine Adapter
 export class ApiEngineAdapter {
-  private getBaseUrl(): string {
-    if (isLocalDevelopment()) {
-      // Local dev: Call API directly
-      const { apiUrl } = getApiConfig()
-      return apiUrl
-    } else {
-      // Production: Use Netlify proxy
-      return '/api'
-    }
-  }
-
-  private getHeaders(): HeadersInit {
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    }
-
-    // Always add auth header (both local and production)
-    const { apiToken } = getApiConfig()
-    if (apiToken) {
-      headers['Authorization'] = `***`
-    }
-
-    return headers
-  }
-
   private async fetchApi<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const baseUrl = this.getBaseUrl()
-    const url = `${baseUrl}${endpoint}`
+    const { apiUrl, apiToken } = getApiConfig()
+    const url = `${apiUrl}${endpoint}`
+
+    console.log(`🌐 API Call: ${endpoint}`)
+    console.log(`📍 URL: ${url}`)
+    console.log(`🔑 Token: ${apiToken ? 'Present (' + apiToken.slice(-4) + ')' : 'MISSING!'}`)
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    if (apiToken) {
+      headers['Authorization'] = `***`
+    }
+
+    // Merge with any existing headers
+    if (options.headers) {
+      Object.assign(headers, options.headers)
+    }
 
     try {
       const response = await fetch(url, {
         ...options,
-        headers: {
-          ...this.getHeaders(),
-          ...options.headers,
-        },
+        headers,
       })
 
+      console.log(`📊 Response Status: ${response.status}`)
+
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Unknown error' }))
+        const errorText = await response.text()
+        console.error(`❌ Error Response:`, errorText)
         
-        // Handle specific error codes
-        if (response.status === 401) {
-          throw new Error('Invalid API token. Please check your token in Settings.')
-        } else if (response.status === 403) {
-          throw new Error('Access denied. Check API permissions.')
-        } else if (response.status === 404) {
-          throw new Error('Endpoint not found.')
+        let errorMessage = `API Error: ${response.status}`
+        try {
+          const errorJson = JSON.parse(errorText)
+          errorMessage = errorJson.message || errorJson.error || errorMessage
+        } catch (e) {
+          // Use status text if JSON parsing fails
+          errorMessage = response.statusText || errorMessage
         }
         
-        throw new Error(error.message || error.error || `API Error: ${response.status}`)
+        throw new Error(errorMessage)
       }
 
-      return await response.json()
+      const data = await response.json()
+      console.log(`✅ Success:`, data)
+      return data
     } catch (error: any) {
-      console.error(`API Error [${endpoint}]:`, error.message)
+      console.error(`💥 API Error [${endpoint}]:`, error.message)
       throw error
     }
   }
@@ -157,7 +146,7 @@ export class ApiEngineAdapter {
 
   // Sync
   async triggerSync(): Promise<void> {
-    await this.fetchApi('/v1/sync', { method: 'POST' })
+    await this.fetchApi('/api/v1/sync', { method: 'POST' })
   }
 
   // Reports
