@@ -25,7 +25,7 @@ export default function WhatsAppQueue() {
     try {
       setLoading(true)
       const response = await dataAdapter.getWhatsAppQueue()
-      setQueue(response.data || [])
+      setQueue(response || [])
     } catch (error) {
       console.error('Failed to fetch WhatsApp queue:', error)
     } finally {

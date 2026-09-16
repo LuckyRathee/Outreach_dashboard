@@ -28,7 +28,7 @@ class DataAdapter {
   }
 
   // WhatsApp Queue
-  async getWhatsAppQueue(): Promise<ApiResponse<WhatsAppQueueItem[]>> {
+  async getWhatsAppQueue(): Promise<WhatsAppQueueItem[]> {
     return await apiAdapter.getWhatsAppQueue()
   }
 

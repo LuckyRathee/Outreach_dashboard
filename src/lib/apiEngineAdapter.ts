@@ -127,8 +127,22 @@ export class ApiEngineAdapter {
   }
 
   // WhatsApp Queue
-  async getWhatsAppQueue(): Promise<ApiResponse<WhatsAppQueueItem[]>> {
-    return this.fetchApi<ApiResponse<WhatsAppQueueItem[]>>('/api/v1/outreach/whatsapp-queue')
+  async getWhatsAppQueue(): Promise<WhatsAppQueueItem[]> {
+    const data = await this.fetchApi<any[]>('/api/v1/outreach/whatsapp-queue')
+    
+    // Transform API response to match dashboard format
+    // API returns nested structure, dashboard expects flat fields
+    return data.map(item => ({
+      lead_id: item.lead_id,
+      company_name: item.business_name || item.company_name || 'Unknown',
+      employees: item.employees || 0,
+      city: item.city || 'Unknown',
+      industry: item.category || item.industry || 'Unknown',
+      template: item.whatsapp?.message || '',
+      whatsapp_url: item.whatsapp?.url || '',
+      status: item.whatsapp?.status || 'READY',
+      priority_score: item.qualification?.score || 0,
+    }))
   }
 
   async markWhatsAppOpened(leadId: string, actor: string = 'dashboard-user'): Promise<void> {
