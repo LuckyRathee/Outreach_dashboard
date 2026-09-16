@@ -8,8 +8,12 @@ interface ApiSettingsModalProps {
 }
 
 export default function ApiSettingsModal({ isOpen, onClose }: ApiSettingsModalProps) {
-  const [apiUrl, setApiUrl] = useState(localStorage.getItem('engine_api_url') || 'http://localhost:8000')
-  const [apiToken, setApiToken] = useState(localStorage.getItem('engine_api_token') || '')
+  const [apiUrl, setApiUrl] = useState(
+    localStorage.getItem('engine_api_url') || 'https://hermes-vm.tail5e4a2f.ts.net'
+  )
+  const [apiToken, setApiToken] = useState(
+    localStorage.getItem('engine_api_token') || ''
+  )
 
   const handleSave = () => {
     localStorage.setItem('engine_api_url', apiUrl)
@@ -25,6 +29,21 @@ export default function ApiSettingsModal({ isOpen, onClose }: ApiSettingsModalPr
     window.location.reload()
   }
 
+  const handleTestConnection = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/health`)
+      const data = await response.json()
+      
+      if (data.status === 'ok') {
+        alert('✅ Connection successful! API is reachable.')
+      } else {
+        alert('⚠️ API responded but health check failed.')
+      }
+    } catch (error) {
+      alert('❌ Connection failed. Please check the URL.')
+    }
+  }
+
   return (
     <Modal
       isOpen={isOpen}
@@ -32,6 +51,9 @@ export default function ApiSettingsModal({ isOpen, onClose }: ApiSettingsModalPr
       title="API Configuration"
       footer={
         <>
+          <Button variant="secondary" onClick={handleTestConnection}>
+            Test Connection
+          </Button>
           <Button variant="secondary" onClick={handleReset}>
             Reset
           </Button>
@@ -53,11 +75,11 @@ export default function ApiSettingsModal({ isOpen, onClose }: ApiSettingsModalPr
             type="text"
             value={apiUrl}
             onChange={(e) => setApiUrl(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            placeholder="http://localhost:8000"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="https://hermes-vm.tail5e4a2f.ts.net"
           />
           <p className="mt-1 text-xs text-gray-500">
-            The base URL of your Engine API (e.g., http://localhost:8000 or https://your-api.com)
+            Your Engine API base URL (Tailscale Funnel or public URL)
           </p>
         </div>
 
@@ -69,12 +91,24 @@ export default function ApiSettingsModal({ isOpen, onClose }: ApiSettingsModalPr
             type="password"
             value={apiToken}
             onChange={(e) => setApiToken(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="your-api-token"
           />
           <p className="mt-1 text-xs text-gray-500">
-            Your Engine API authentication token
+            Bearer token for API authentication
           </p>
+        </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+          <div className="text-xs text-blue-700">
+            <strong>Current Configuration:</strong>
+            <div className="mt-1">
+              URL: {apiUrl || 'Not set'}
+            </div>
+            <div>
+              Token: {apiToken ? '••••••••' + apiToken.slice(-4) : 'Not set'}
+            </div>
+          </div>
         </div>
 
         <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
@@ -83,7 +117,7 @@ export default function ApiSettingsModal({ isOpen, onClose }: ApiSettingsModalPr
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
             </svg>
             <div className="text-xs text-yellow-700">
-              <strong>Note:</strong> This dashboard uses a secure server-side proxy (Netlify Functions). The API token is never exposed to the browser.
+              <strong>Note:</strong> The API token is stored in localStorage for local development. In production, use the Netlify proxy for secure server-side authentication.
             </div>
           </div>
         </div>

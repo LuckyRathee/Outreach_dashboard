@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>Testing Digital Patron API</h1>
+    <pre id="results"></pre>
+    
+    <script>
+        const API_BASE = 'https://hermes-vm.tail5e4a2f.ts.net';
+        const results = document.getElementById('results');
+        
+        async function testEndpoint(name, url) {
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                return `✅ ${name}: ${response.status}\n${JSON.stringify(data, null, 2)}\n\n`;
+            } catch (error) {
+                return `❌ ${name}: ${error.message}\n\n`;
+            }
+        }
+        
+        async function runTests() {
+            let output = '';
+            
+            output += await testEndpoint('Health', `${API_BASE}/health`);
+            output += await testEndpoint('Metrics', `${API_BASE}/api/v1/dashboard/metrics`);
+            output += await testEndpoint('Leads', `${API_BASE}/api/v1/leads`);
+            output += await testEndpoint('WhatsApp Queue', `${API_BASE}/api/v1/outreach/whatsapp-queue`);
+            output += await testEndpoint('Follow-ups', `${API_BASE}/api/v1/followups`);
+            output += await testEndpoint('Activity', `${API_BASE}/api/v1/activity`);
+            
+            results.textContent = output;
+        }
+        
+        runTests();
+    </script>
+</body>
+</html>

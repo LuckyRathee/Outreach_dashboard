@@ -10,33 +10,74 @@ import type {
   TemplatePerformance,
 } from './types'
 
-// API Engine Adapter - Calls the Netlify proxy
-export class ApiEngineAdapter {
-  private baseUrl: string
+// Check if running locally (development) or on Netlify (production)
+const isLocalDevelopment = () => {
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+}
 
-  constructor() {
-    // Use relative URL - Netlify proxy handles the routing
-    this.baseUrl = '/api'
+// Get API configuration
+const getApiConfig = () => {
+  const apiUrl = localStorage.getItem('engine_api_url') || 'https://hermes-vm.tail5e4a2f.ts.net'
+  const apiToken = localStorage.getItem('engine_api_token') || ''
+  return { apiUrl, apiToken }
+}
+
+// API Engine Adapter - Works both locally and in production
+export class ApiEngineAdapter {
+  private getBaseUrl(): string {
+    if (isLocalDevelopment()) {
+      // Local dev: Call API directly
+      const { apiUrl } = getApiConfig()
+      return apiUrl
+    } else {
+      // Production: Use Netlify proxy
+      return '/api'
+    }
+  }
+
+  private getHeaders(): HeadersInit {
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    }
+
+    // Always add auth header (both local and production)
+    const { apiToken } = getApiConfig()
+    if (apiToken) {
+      headers['Authorization'] = `***`
+    }
+
+    return headers
   }
 
   private async fetchApi<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`
+    const baseUrl = this.getBaseUrl()
+    const url = `${baseUrl}${endpoint}`
 
     try {
       const response = await fetch(url, {
         ...options,
         headers: {
-          'Content-Type': 'application/json',
+          ...this.getHeaders(),
           ...options.headers,
         },
       })
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({ message: 'Unknown error' }))
-        throw new Error(error.message || `API Error: ${response.status}`)
+        
+        // Handle specific error codes
+        if (response.status === 401) {
+          throw new Error('Invalid API token. Please check your token in Settings.')
+        } else if (response.status === 403) {
+          throw new Error('Access denied. Check API permissions.')
+        } else if (response.status === 404) {
+          throw new Error('Endpoint not found.')
+        }
+        
+        throw new Error(error.message || error.error || `API Error: ${response.status}`)
       }
 
       return await response.json()
@@ -48,7 +89,7 @@ export class ApiEngineAdapter {
 
   // Dashboard metrics
   async getDashboardMetrics(): Promise<DashboardMetrics> {
-    return this.fetchApi<DashboardMetrics>('/v1/dashboard/metrics')
+    return this.fetchApi<DashboardMetrics>('/api/v1/dashboard/metrics')
   }
 
   // Leads
@@ -63,46 +104,55 @@ export class ApiEngineAdapter {
     if (filters?.limit) params.append('limit', filters.limit.toString())
 
     const queryString = params.toString()
-    return this.fetchApi<ApiResponse<Lead[]>>(`/v1/leads${queryString ? '?' + queryString : ''}`)
+    return this.fetchApi<ApiResponse<Lead[]>>(`/api/v1/leads${queryString ? '?' + queryString : ''}`)
   }
 
   async getLead(leadId: string): Promise<Lead> {
-    return this.fetchApi<Lead>(`/v1/leads/${leadId}`)
+    return this.fetchApi<Lead>(`/api/v1/leads/${leadId}`)
   }
 
   // WhatsApp Queue
   async getWhatsAppQueue(): Promise<ApiResponse<WhatsAppQueueItem[]>> {
-    return this.fetchApi<ApiResponse<WhatsAppQueueItem[]>>('/v1/outreach/whatsapp-queue')
+    return this.fetchApi<ApiResponse<WhatsAppQueueItem[]>>('/api/v1/outreach/whatsapp-queue')
   }
 
-  async markWhatsAppOpened(leadId: string): Promise<void> {
-    await this.fetchApi(`/v1/leads/${leadId}/whatsapp/opened`, { method: 'POST' })
+  async markWhatsAppOpened(leadId: string, actor: string = 'dashboard-user'): Promise<void> {
+    await this.fetchApi(`/api/v1/leads/${leadId}/whatsapp/opened`, {
+      method: 'POST',
+      body: JSON.stringify({ actor })
+    })
   }
 
-  async markWhatsAppSent(leadId: string): Promise<void> {
-    await this.fetchApi(`/v1/leads/${leadId}/whatsapp/mark-sent`, { method: 'POST' })
+  async markWhatsAppSent(leadId: string, actor: string = 'dashboard-user'): Promise<void> {
+    await this.fetchApi(`/api/v1/leads/${leadId}/whatsapp/mark-sent`, {
+      method: 'POST',
+      body: JSON.stringify({ confirmation: true, actor })
+    })
   }
 
   // Follow-ups
   async getFollowUps(status?: string): Promise<ApiResponse<FollowUp[]>> {
     const queryString = status ? `?status=${status}` : ''
-    return this.fetchApi<ApiResponse<FollowUp[]>>(`/v1/followups${queryString}`)
+    return this.fetchApi<ApiResponse<FollowUp[]>>(`/api/v1/followups${queryString}`)
   }
 
-  async completeFollowUp(followUpId: string): Promise<void> {
-    await this.fetchApi(`/v1/followups/${followUpId}/complete`, { method: 'POST' })
-  }
-
-  async snoozeFollowUp(followUpId: string, newDate: string): Promise<void> {
-    await this.fetchApi(`/v1/followups/${followUpId}/snooze`, {
+  async completeFollowUp(followUpId: string, actor: string = 'dashboard-user'): Promise<void> {
+    await this.fetchApi(`/api/v1/followups/${followUpId}/complete`, {
       method: 'POST',
-      body: JSON.stringify({ new_date: newDate }),
+      body: JSON.stringify({ actor })
+    })
+  }
+
+  async snoozeFollowUp(followUpId: string, newDate: string, actor: string = 'dashboard-user'): Promise<void> {
+    await this.fetchApi(`/api/v1/followups/${followUpId}/snooze`, {
+      method: 'POST',
+      body: JSON.stringify({ new_due_at: newDate, actor })
     })
   }
 
   // Activities
   async getActivities(limit = 50): Promise<ApiResponse<Activity[]>> {
-    return this.fetchApi<ApiResponse<Activity[]>>(`/v1/activity?limit=${limit}`)
+    return this.fetchApi<ApiResponse<Activity[]>>(`/api/v1/activity?limit=${limit}`)
   }
 
   // Sync
@@ -113,17 +163,38 @@ export class ApiEngineAdapter {
   // Reports
   async getOutreachMetrics(startDate: string, endDate: string): Promise<OutreachMetric[]> {
     return this.fetchApi<OutreachMetric[]>(
-      `/v1/reports/outreach?start_date=${startDate}&end_date=${endDate}`
+      `/api/v1/reports/outreach?start_date=${startDate}&end_date=${endDate}`
     )
   }
 
   async getTemplatePerformance(): Promise<TemplatePerformance[]> {
-    return this.fetchApi<TemplatePerformance[]>('/v1/reports/templates')
+    return this.fetchApi<TemplatePerformance[]>('/api/v1/reports/templates')
   }
 
   // Health check
   async checkHealth(): Promise<{ status: string }> {
     return this.fetchApi<{ status: string }>('/health')
+  }
+
+  // Outreach Draft
+  async getOutreachDraft(leadId: string): Promise<any> {
+    return this.fetchApi(`/api/v1/leads/${leadId}/outreach-draft`)
+  }
+
+  // Approve Outreach
+  async approveOutreach(leadId: string, actor: string = 'dashboard-user'): Promise<void> {
+    await this.fetchApi(`/api/v1/leads/${leadId}/outreach/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ actor })
+    })
+  }
+
+  // Send Email
+  async sendEmail(leadId: string, recipientEmail: string, actor: string = 'dashboard-user'): Promise<void> {
+    await this.fetchApi(`/api/v1/leads/${leadId}/email/send`, {
+      method: 'POST',
+      body: JSON.stringify({ recipient_email: recipientEmail, confirmation: true, actor })
+    })
   }
 }
 
