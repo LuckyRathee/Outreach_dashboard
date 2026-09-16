@@ -6,8 +6,7 @@ import QueueItem from '../components/whatsapp/QueueItem'
 import QueueStats from '../components/whatsapp/QueueStats'
 import EmptyState from '../components/common/EmptyState'
 import ConfirmationDialog from '../components/common/ConfirmationDialog'
-import { demoAdapter, isDemoMode } from '../lib/demoAdapter'
-import { apiAdapter } from '../lib/apiEngineAdapter'
+import { dataAdapter } from '../lib/dataAdapter'
 import { useRefresh } from '../hooks/useRefresh'
 import type { WhatsAppQueueItem } from '../lib/types'
 
@@ -25,7 +24,7 @@ export default function WhatsAppQueue() {
   const fetchQueue = async () => {
     try {
       setLoading(true)
-      const response = await demoAdapter.getWhatsAppQueue()
+      const response = await dataAdapter.getWhatsAppQueue()
       setQueue(response.data || [])
     } catch (error) {
       console.error('Failed to fetch WhatsApp queue:', error)
@@ -38,10 +37,8 @@ export default function WhatsAppQueue() {
     try {
       setActionLoading(item.lead_id)
       
-      // Use API adapter if available
-      if (!isDemoMode()) {
-        await apiAdapter.markWhatsAppOpened(item.lead_id)
-      }
+      // Call API
+      await dataAdapter.markWhatsAppOpened(item.lead_id)
       
       // Open WhatsApp URL in new tab
       window.open(item.whatsapp_url, '_blank')
@@ -69,10 +66,8 @@ export default function WhatsAppQueue() {
     try {
       setActionLoading(confirmItem.lead_id)
       
-      // Use API adapter if available
-      if (!isDemoMode()) {
-        await apiAdapter.markWhatsAppSent(confirmItem.lead_id)
-      }
+      // Call API
+      await dataAdapter.markWhatsAppSent(confirmItem.lead_id)
       
       // Update local state
       setQueue((prev) =>

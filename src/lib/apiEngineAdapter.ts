@@ -10,12 +10,6 @@ import type {
   TemplatePerformance,
 } from './types'
 
-// Check if using API mode (not demo)
-export const isApiMode = (): boolean => {
-  const mode = localStorage.getItem('dashboard_mode')
-  return mode === 'api'
-}
-
 // API Engine Adapter - Calls the Netlify proxy
 export class ApiEngineAdapter {
   private baseUrl: string

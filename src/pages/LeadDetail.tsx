@@ -5,8 +5,7 @@ import Button from '../components/common/Button'
 import Badge from '../components/common/Badge'
 import Spinner from '../components/common/Spinner'
 import ConfirmationDialog from '../components/common/ConfirmationDialog'
-import { demoAdapter, isDemoMode } from '../lib/demoAdapter'
-import { apiAdapter } from '../lib/apiEngineAdapter'
+import { dataAdapter } from '../lib/dataAdapter'
 import type { Lead } from '../lib/types'
 
 export default function LeadDetail() {
@@ -24,7 +23,7 @@ export default function LeadDetail() {
   const fetchLead = async () => {
     try {
       setLoading(true)
-      const data = await demoAdapter.getLead(id!)
+      const data = await dataAdapter.getLead(id!)
       setLead(data)
     } catch (error) {
       console.error('Failed to fetch lead:', error)
@@ -39,10 +38,8 @@ export default function LeadDetail() {
     try {
       setWhatsappLoading(true)
       
-      // Use API adapter if available
-      if (!isDemoMode()) {
-        await apiAdapter.markWhatsAppOpened(lead.id)
-      }
+      // Call API
+      await dataAdapter.markWhatsAppOpened(lead.id)
       
       // Open WhatsApp URL
       if (lead.whatsapp_number) {
@@ -64,10 +61,8 @@ export default function LeadDetail() {
     try {
       setWhatsappLoading(true)
       
-      // Use API adapter if available
-      if (!isDemoMode()) {
-        await apiAdapter.markWhatsAppSent(lead.id)
-      }
+      // Call API
+      await dataAdapter.markWhatsAppSent(lead.id)
       
       setShowConfirmDialog(false)
       fetchLead()

@@ -1,133 +1,227 @@
-# Digital Patron - Outreach Dashboard
+# Digital Patron Dashboard
 
-A modern React + TypeScript dashboard for managing B2B leads, WhatsApp outreach, follow-ups, and reports.
+A secure React dashboard for B2B lead outreach management with server-side API authentication.
 
-## 📊 Features
+## Architecture
 
-- **Home Dashboard** - Real-time metrics, pipeline overview, activity feed
-- **Lead Management** - Search, filter, bulk operations, CSV/Excel export
-- **WhatsApp Queue** - Priority-sorted message queue with workflow tracking
-- **Follow-ups** - Today/Overdue/Upcoming tabs with reschedule capability
-- **Reports & Analytics** - Charts, response rates, template performance
+```
+Browser Dashboard
+  ↓ HTTPS
+Netlify Function (engine-proxy)
+  ↓ Server-side authentication
+FastAPI Engine API (Azure/Remote)
+  ↓
+Python Outreach Engine
+```
 
-## 🎯 Use Case
+**Security:**
+- ✅ API token never exposed to browser
+- ✅ All requests authenticated server-side
+- ✅ Whitelisted endpoints only
+- ✅ Request validation and timeout
 
-Built for Digital Patron's tri-city B2B tech lead outreach:
-- Target: Chandigarh, Mohali, Panchkula
-- ICP: 30-140 employees, B2B tech companies
-- 800-1500 leads/day processing capacity
+## Quick Start
 
-## 🚀 Quick Start
+### Prerequisites
+
+- Node.js 18+ installed
+- Engine API running and accessible
+- API token from your engine deployment
+
+### Local Development
 
 ```bash
 # Install dependencies
+cd D:\HermesDEmos\dashboard
 npm install
 
-# Development server
+# Run development server
 npm run dev
-# Opens at http://localhost:3000
-
-# Production build
-npm run build
-npm run preview
 ```
 
-## ⚙️ Configuration
+Dashboard runs at `http://localhost:5173`
 
-Create `.env` file:
+### Production Deployment
+
+See [NETLIFY_DEPLOYMENT.md](./NETLIFY_DEPLOYMENT.md) for detailed instructions.
+
+## Configuration
+
+### Environment Variables
+
+Set in Netlify Dashboard → Site Settings → Environment Variables:
+
 ```env
-VITE_ENGINE_API_URL=http://localhost:8000
-VITE_ENGINE_API_TOKEN=your-api-token-here
-VITE_LEAD_ARCHIVE_DAYS=7
+ENGINE_API_BASE_URL=https://hermes-vm.tail5e4a2f.ts.net
+ENGINE_API_TOKEN=your-engine-token-here
 ```
 
-## 🔗 API Connection
+### Landing Page
 
-Dashboard connects to the Digital Patron engine API:
-- **Local**: `http://localhost:8000`
-- **Server**: `http://YOUR_SERVER_IP:8000`
+On first load, the dashboard shows a landing page where you enter:
 
-## 📱 Pages
+1. **Engine API URL** - Your engine's public URL
+2. **API Token** - Authentication token
 
-| Page | Route | Description |
-|------|-------|-------------|
-| Home | `/` | Metrics, pipeline, quick actions |
-| Leads | `/leads` | Searchable table with bulk ops |
-| Lead Detail | `/leads/:id` | Full lead information |
-| WhatsApp Queue | `/whatsapp` | Message processing workflow |
-| Follow-ups | `/followups` | Due/overdue follow-up management |
-| Reports | `/reports` | Charts and analytics |
+Click "Connect to API" to proceed.
 
-## 🛠️ Tech Stack
+## Features
 
-- **Framework**: React 18 + Vite
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Routing**: React Router v6
-- **HTTP**: Axios
-- **Charts**: Recharts
-- **Export**: PapaParse (CSV), XLSX (Excel)
+### 📊 Dashboard Home
+- Overview metrics (emails, WhatsApp, follow-ups)
+- Pipeline visualization
+- Recent activity feed
 
-## 📦 Project Structure
+### 👥 Lead Management
+- Filterable lead list
+- Lead detail view
+- Bulk operations
+- Export to CSV/Excel
+
+### 💬 WhatsApp Queue
+- Prioritized queue
+- Open WhatsApp → Mark as Sent workflow
+- Confirmation dialogs
+- Real-time updates
+
+### 📅 Follow-ups
+- Today, overdue, upcoming tabs
+- Reschedule functionality
+- Complete actions
+
+### 📈 Reports
+- Outreach charts
+- Response rates
+- Template performance
+- Date range filtering
+
+## API Endpoints Used
+
+```http
+GET  /health
+GET  /api/v1/dashboard/metrics
+GET  /api/v1/leads
+GET  /api/v1/leads/{lead_id}
+GET  /api/v1/outreach/whatsapp-queue
+GET  /api/v1/followups
+GET  /api/v1/activity
+POST /api/v1/sync
+POST /api/v1/leads/{lead_id}/whatsapp/opened
+POST /api/v1/leads/{lead_id}/whatsapp/mark-sent
+POST /api/v1/followups/{followup_id}/complete
+```
+
+## Tech Stack
+
+- **React 18** - UI framework
+- **Vite** - Build tool
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **Recharts** - Charts and analytics
+- **Axios** - HTTP client
+- **React Router** - Navigation
+- **Netlify Functions** - Serverless proxy
+
+## Project Structure
 
 ```
-dashboard/
+D:\HermesDEmos\dashboard\
+├── netlify/
+│   └── functions/
+│       └── engine-proxy.ts      # Secure API proxy
 ├── src/
 │   ├── components/
-│   │   ├── common/       # Button, Card, Modal, etc.
-│   │   ├── home/         # Metric cards, pipeline
-│   │   ├── leads/        # Table, filters, bulk actions
-│   │   ├── whatsapp/     # Queue items, stats
-│   │   ├── followups/    # Tabs, reschedule modal
-│   │   ├── reports/      # Charts, date picker
-│   │   └── layout/       # Sidebar, header
-│   ├── pages/            # Route pages
-│   ├── lib/              # API client, types, export
-│   ├── hooks/            # Custom React hooks
-│   └── context/          # App state context
+│   │   ├── common/              # Reusable components
+│   │   ├── home/
+│   │   ├── leads/
+│   │   ├── whatsapp/
+│   │   ├── followups/
+│   │   ├── reports/
+│   │   └── layout/
+│   ├── lib/
+│   │   ├── apiEngineAdapter.ts  # API client
+│   │   ├── dataAdapter.ts       # Unified adapter
+│   │   ├── types.ts             # TypeScript types
+│   │   └── export.ts            # Export utilities
+│   ├── pages/
+│   │   ├── Home.tsx
+│   │   ├── Leads.tsx
+│   │   ├── LeadDetail.tsx
+│   │   ├── WhatsAppQueue.tsx
+│   │   ├── FollowUps.tsx
+│   │   ├── Reports.tsx
+│   │   └── Landing.tsx
+│   ├── hooks/
+│   └── context/
+├── netlify.toml                 # Netlify config
+└── package.json
 ```
 
-## 🔐 Authentication
+## Security Features
 
-Single shared API token for all users (3-4 team members).
+✅ **No token in browser** - Server-side proxy handles auth  
+✅ **Whitelisted endpoints** - Only allowed paths accepted  
+✅ **Request timeout** - 30-second limit  
+✅ **HTTPS enforcement** - Netlify provides SSL  
+✅ **Confirmation dialogs** - Prevents accidental actions  
+✅ **No secret logging** - Authorization header stripped from logs
 
-## 📋 Key Workflows
+## WhatsApp Workflow
 
-### WhatsApp Outreach
-1. View prioritized queue
-2. Click "Open WhatsApp" → opens wa.me link
-3. Send message manually in WhatsApp
-4. Click "Mark as Sent" → updates CRM
+1. Lead appears in WhatsApp Queue
+2. Click **Open WhatsApp** → Opens in new tab
+3. **Does NOT count as sent**
+4. Manually send message in WhatsApp
+5. Click **Mark as Manually Sent**
+6. Confirmation dialog appears
+7. Confirm → Updates lead status
+8. Lead moves to CONTACTED
+9. Follow-up scheduled
 
-### Lead Management
-1. Search and filter leads
-2. Select multiple for bulk operations
-3. Bulk mark sent/unsent/archive
-4. Export to CSV or Excel
+## Testing
 
-### Follow-ups
-1. View Today/Overdue/Upcoming tabs
-2. Complete or reschedule follow-ups
-3. Add notes and reasons
+### Health Check
 
-## 📈 Reports
+```bash
+curl https://your-dashboard.netlify.app/api/health
+```
 
-- Outreach volume by day (bar chart)
-- Response rate trend (line chart)
-- Lead status distribution (pie chart)
-- Template performance (table)
+### Verify Token Security
 
-## 🎨 Branding
+Open browser DevTools → Network tab:
+- ✅ No API token in requests
+- ✅ Only `/api/*` endpoints called
+- ✅ Authorization added server-side
 
-Dashboard branded for **Digital Patron** with:
-- Professional blue color scheme
-- DP logo in sidebar
-- Clean, modern UI
+## Troubleshooting
 
-## 📝 License
+### 403 Forbidden
+- Endpoint not whitelisted
+- Add to `ALLOWED_ENDPOINTS` in `netlify/functions/engine-proxy.ts`
+
+### 502 Bad Gateway
+- Engine API unreachable
+- Check `ENGINE_API_BASE_URL` environment variable
+- Verify engine is running
+
+### 504 Gateway Timeout
+- Engine took too long
+- Check engine logs
+- Increase `REQUEST_TIMEOUT` (default 30s)
+
+## Company
+
+**Digital Patron** - B2B tech lead outreach for Chandigarh tri-city
+
+- Target: 30-140 employees
+- Industry: B2B technology
+- Location: Chandigarh, Mohali, Panchkula
+- Users: 3-4 team members
+
+## License
 
 Proprietary - Digital Patron
 
-## 🆘 Support
+## Contact
 
-For issues or questions, contact the Digital Patron team.
+For support, contact the Digital Patron team.

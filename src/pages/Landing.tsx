@@ -1,95 +1,81 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Card from '../components/common/Card'
 import Button from '../components/common/Button'
 
 export default function Landing() {
   const navigate = useNavigate()
-  const [apiUrl, setApiUrl] = useState(localStorage.getItem('engine_api_url') || '')
-  const [apiToken, setApiToken] = useState(localStorage.getItem('engine_api_token') || '')
+  const [apiUrl, setApiUrl] = useState('http://localhost:8000')
+  const [apiToken, setApiToken] = useState('')
 
   const handleConnect = () => {
-    // Save to localStorage
     localStorage.setItem('engine_api_url', apiUrl)
     localStorage.setItem('engine_api_token', apiToken)
+    localStorage.setItem('dashboard_mode', 'api')
     
-    // Update environment for this session
-    if (apiUrl) {
-      navigate('/')
-    }
-  }
-
-  const handleSkip = () => {
-    // Set placeholder URL to skip configuration
-    localStorage.setItem('engine_api_url', 'http://localhost:8000')
+    navigate('/')
     window.location.reload()
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
-      <div className="max-w-md w-full space-y-8 p-8 bg-gray-900 rounded-2xl shadow-xl border border-gray-800">
-        {/* Logo */}
-        <div className="text-center">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center p-4">
+      <Card className="max-w-md w-full p-8">
+        <div className="text-center mb-8">
           <img 
             src="/digital-patron-logo.png" 
             alt="Digital Patron" 
-            className="h-24 w-auto mx-auto mb-6"
+            className="h-16 w-16 mx-auto mb-4 rounded-lg"
           />
-          <h2 className="text-3xl font-bold text-white">Welcome to Digital Patron</h2>
-          <p className="mt-2 text-sm text-gray-400">
-            B2B Tech Lead Outreach Dashboard
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Digital Patron</h1>
+          <p className="text-gray-600">B2B Lead Outreach Dashboard</p>
         </div>
 
-        {/* Connection Form */}
         <div className="space-y-4">
           <div>
-            <label htmlFor="apiUrl" className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Engine API URL
             </label>
             <input
-              id="apiUrl"
               type="text"
               value={apiUrl}
               onChange={(e) => setApiUrl(e.target.value)}
-              placeholder="http://your-azure-ip:8000"
-              className="appearance-none relative block w-full px-4 py-3 border border-gray-700 bg-gray-800 placeholder-gray-500 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="http://localhost:8000"
             />
           </div>
-          
+
           <div>
-            <label htmlFor="apiToken" className="block text-sm font-medium text-gray-700 mb-1">
-              API Token (Optional)
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              API Token
             </label>
             <input
-              id="apiToken"
               type="password"
               value={apiToken}
               onChange={(e) => setApiToken(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="your-api-token"
-              className="appearance-none relative block w-full px-4 py-3 border border-gray-700 bg-gray-800 placeholder-gray-500 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
 
-          <div className="flex gap-3">
-            <Button variant="secondary" onClick={handleSkip} className="flex-1 py-3">
-              Skip
-            </Button>
-            <Button onClick={handleConnect} className="flex-1 py-3">
-              Connect
-            </Button>
-          </div>
-          
-          <p className="text-xs text-gray-500 text-center">
-            You can configure API connection later from the dashboard
-          </p>
+          <Button
+            onClick={handleConnect}
+            className="w-full"
+            disabled={!apiUrl}
+          >
+            Connect to API
+          </Button>
         </div>
 
-        {/* Footer */}
-        <div className="text-center text-xs text-gray-500">
-          <p>Digital Patron - Chandigarh Tri-City</p>
-          <p className="mt-1">B2B Tech Leads (30-140 employees)</p>
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <div className="text-center text-sm text-gray-500">
+            <p className="mb-2">Architecture:</p>
+            <div className="text-xs space-y-1">
+              <p>Dashboard → Netlify Proxy → Engine API</p>
+              <p className="text-gray-400">Token never exposed to browser</p>
+            </div>
+          </div>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

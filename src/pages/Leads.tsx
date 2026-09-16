@@ -6,7 +6,7 @@ import ExportButton from '../components/common/ExportButton'
 import LeadFilters from '../components/leads/LeadFilters'
 import LeadTable from '../components/leads/LeadTable'
 import BulkActions from '../components/leads/BulkActions'
-import { demoAdapter } from '../lib/demoAdapter'
+import { dataAdapter } from '../lib/dataAdapter'
 import { bulkMarkSent, bulkMarkUnsent, bulkArchive } from '../lib/api'
 import { exportToCSV, exportToExcel } from '../lib/export'
 import { useRefresh } from '../hooks/useRefresh'
@@ -41,7 +41,7 @@ export default function Leads() {
   const fetchLeads = async () => {
     try {
       setLoading(true)
-      const response = await demoAdapter.getLeads({ status, city, industry, search, page, limit })
+      const response = await dataAdapter.getLeads({ status, city, industry, search, page, limit })
       setLeads(response.data || [])
       setTotal(response.total || 0)
       setHasMore(response.has_more || false)

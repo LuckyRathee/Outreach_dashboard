@@ -7,7 +7,7 @@ import ActivityFeed from '../components/home/ActivityFeed'
 import Spinner from '../components/common/Spinner'
 import { useRefresh } from '../hooks/useRefresh'
 import type { DashboardMetrics, Activity } from '../lib/types'
-import { demoAdapter, isDemoMode } from '../lib/demoAdapter'
+import { dataAdapter } from '../lib/dataAdapter'
 
 export default function Home() {
   const navigate = useNavigate()
@@ -16,7 +16,6 @@ export default function Home() {
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [demoMode, setDemoMode] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -26,11 +25,10 @@ export default function Home() {
     try {
       setLoading(true)
       setError(null)
-      setDemoMode(isDemoMode())
       
       const [metricsData, activitiesData] = await Promise.all([
-        demoAdapter.getDashboardMetrics(),
-        demoAdapter.getActivities(20),
+        dataAdapter.getDashboardMetrics(),
+        dataAdapter.getActivities(20),
       ])
       
       setMetrics(metricsData)
@@ -75,25 +73,6 @@ export default function Home() {
 
   return (
     <div className="space-y-6">
-      {/* Demo Mode Banner */}
-      {demoMode && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-blue-800">Demo Mode</h3>
-              <p className="text-xs text-blue-700 mt-0.5">
-                Showing sample data. Configure your Azure API in Settings to see live data.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-      
       {/* Metric Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard

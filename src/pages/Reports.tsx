@@ -7,7 +7,7 @@ import OutreachChart from '../components/reports/OutreachChart'
 import ResponseChart from '../components/reports/ResponseChart'
 import StatusPieChart from '../components/reports/StatusPieChart'
 import TemplateTable from '../components/reports/TemplateTable'
-import { demoAdapter } from '../lib/demoAdapter'
+import { dataAdapter } from '../lib/dataAdapter'
 import { exportDataToExcel } from '../lib/export'
 import { useRefresh } from '../hooks/useRefresh'
 import type { DashboardMetrics, OutreachMetric, TemplatePerformance } from '../lib/types'
@@ -40,9 +40,9 @@ export default function Reports() {
       setLoading(true)
       
       const [metricsData, outreach, templates] = await Promise.all([
-        demoAdapter.getDashboardMetrics(),
-        demoAdapter.getOutreachMetrics(startDate, endDate),
-        demoAdapter.getTemplatePerformance(),
+        dataAdapter.getDashboardMetrics(),
+        dataAdapter.getOutreachMetrics(startDate, endDate),
+        dataAdapter.getTemplatePerformance(),
       ])
       
       setMetrics(metricsData)
