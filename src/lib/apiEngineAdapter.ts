@@ -79,7 +79,32 @@ export class ApiEngineAdapter {
 
   // Dashboard metrics
   async getDashboardMetrics(): Promise<DashboardMetrics> {
-    return this.fetchApi<DashboardMetrics>('/api/v1/dashboard/metrics')
+    const data = await this.fetchApi<any>('/api/v1/dashboard/metrics')
+    
+    // Transform API response to match dashboard format
+    // API returns flat metrics, dashboard expects pipeline breakdown
+    return {
+      emails_sent_today: data.real_messages_sent || 0,
+      whatsapp_queue_count: data.whatsapp_links_ready || 0,
+      followups_due_today: 0, // Not provided by API yet
+      replies_today: 0, // Not provided by API yet
+      pipeline: {
+        new: data.ready_to_approach || 0,
+        contacted: data.contacted || 0,
+        responded: 0, // Not provided by API yet
+        qualified: data.qualified || 0,
+        won: 0, // Not provided by API yet
+      },
+      last_sync: data.last_sync_at || new Date().toISOString(),
+      // Also include the raw metrics
+      total_leads: data.total_leads || 0,
+      qualified: data.qualified || 0,
+      contacted: data.contacted || 0,
+      ready_to_approach: data.ready_to_approach || 0,
+      whatsapp_links_ready: data.whatsapp_links_ready || 0,
+      real_messages_sent: data.real_messages_sent || 0,
+      suppressed: data.suppressed || 0,
+    }
   }
 
   // Leads

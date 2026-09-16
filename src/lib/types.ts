@@ -62,6 +62,14 @@ export interface DashboardMetrics {
   replies_today: number
   pipeline: PipelineBreakdown
   last_sync: string
+  // Raw metrics from API
+  total_leads?: number
+  qualified?: number
+  contacted?: number
+  ready_to_approach?: number
+  whatsapp_links_ready?: number
+  real_messages_sent?: number
+  suppressed?: number
 }
 
 // Activity Types
