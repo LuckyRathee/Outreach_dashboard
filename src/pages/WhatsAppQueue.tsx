@@ -5,8 +5,9 @@ import Spinner from '../components/common/Spinner'
 import QueueItem from '../components/whatsapp/QueueItem'
 import QueueStats from '../components/whatsapp/QueueStats'
 import EmptyState from '../components/common/EmptyState'
-import { demoAdapter } from '../lib/demoAdapter'
-import { markWhatsAppOpened, markWhatsAppSent } from '../lib/api'
+import ConfirmationDialog from '../components/common/ConfirmationDialog'
+import { demoAdapter, isDemoMode } from '../lib/demoAdapter'
+import { apiAdapter } from '../lib/apiEngineAdapter'
 import { useRefresh } from '../hooks/useRefresh'
 import type { WhatsAppQueueItem } from '../lib/types'
 
@@ -15,6 +16,7 @@ export default function WhatsAppQueue() {
   const [queue, setQueue] = useState<WhatsAppQueueItem[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [confirmItem, setConfirmItem] = useState<WhatsAppQueueItem | null>(null)
 
   useEffect(() => {
     fetchQueue()
@@ -35,7 +37,11 @@ export default function WhatsAppQueue() {
   const handleOpen = async (item: WhatsAppQueueItem) => {
     try {
       setActionLoading(item.lead_id)
-      await markWhatsAppOpened(item.lead_id)
+      
+      // Use API adapter if available
+      if (!isDemoMode()) {
+        await apiAdapter.markWhatsAppOpened(item.lead_id)
+      }
       
       // Open WhatsApp URL in new tab
       window.open(item.whatsapp_url, '_blank')
@@ -53,18 +59,29 @@ export default function WhatsAppQueue() {
     }
   }
 
-  const handleMarkSent = async (item: WhatsAppQueueItem) => {
+  const handleMarkSentClick = (item: WhatsAppQueueItem) => {
+    setConfirmItem(item)
+  }
+
+  const handleMarkSent = async () => {
+    if (!confirmItem) return
+    
     try {
-      setActionLoading(item.lead_id)
-      await markWhatsAppSent(item.lead_id)
+      setActionLoading(confirmItem.lead_id)
+      
+      // Use API adapter if available
+      if (!isDemoMode()) {
+        await apiAdapter.markWhatsAppSent(confirmItem.lead_id)
+      }
       
       // Update local state
       setQueue((prev) =>
         prev.map((i) =>
-          i.lead_id === item.lead_id ? { ...i, status: 'SENT' } : i
+          i.lead_id === confirmItem.lead_id ? { ...i, status: 'SENT' } : i
         )
       )
       
+      setConfirmItem(null)
       triggerRefresh()
     } catch (error) {
       console.error('Failed to mark sent:', error)
@@ -133,13 +150,25 @@ export default function WhatsAppQueue() {
               key={item.lead_id}
               item={item}
               onOpen={() => handleOpen(item)}
-              onMarkSent={() => handleMarkSent(item)}
+              onMarkSent={() => handleMarkSentClick(item)}
               onSkip={() => handleSkip(item)}
               loading={actionLoading === item.lead_id}
             />
           ))}
         </div>
       )}
+      
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={confirmItem !== null}
+        onConfirm={handleMarkSent}
+        onCancel={() => setConfirmItem(null)}
+        title="Confirm Manual Send"
+        message={`Are you sure you want to mark the WhatsApp message to ${confirmItem?.company_name || 'this lead'} as manually sent? This will update the lead's status and schedule follow-up actions.`}
+        confirmLabel="Yes, Mark as Sent"
+        cancelLabel="Cancel"
+        variant="primary"
+      />
     </div>
   )
 }

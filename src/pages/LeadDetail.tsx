@@ -4,8 +4,9 @@ import Card from '../components/common/Card'
 import Button from '../components/common/Button'
 import Badge from '../components/common/Badge'
 import Spinner from '../components/common/Spinner'
-import { demoAdapter } from '../lib/demoAdapter'
-import { markWhatsAppOpened, markWhatsAppSent } from '../lib/api'
+import ConfirmationDialog from '../components/common/ConfirmationDialog'
+import { demoAdapter, isDemoMode } from '../lib/demoAdapter'
+import { apiAdapter } from '../lib/apiEngineAdapter'
 import type { Lead } from '../lib/types'
 
 export default function LeadDetail() {
@@ -14,6 +15,7 @@ export default function LeadDetail() {
   const [lead, setLead] = useState<Lead | null>(null)
   const [loading, setLoading] = useState(true)
   const [whatsappLoading, setWhatsappLoading] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
   useEffect(() => {
     if (id) fetchLead()
@@ -36,7 +38,11 @@ export default function LeadDetail() {
     
     try {
       setWhatsappLoading(true)
-      await markWhatsAppOpened(lead.id)
+      
+      // Use API adapter if available
+      if (!isDemoMode()) {
+        await apiAdapter.markWhatsAppOpened(lead.id)
+      }
       
       // Open WhatsApp URL
       if (lead.whatsapp_number) {
@@ -57,13 +63,27 @@ export default function LeadDetail() {
     
     try {
       setWhatsappLoading(true)
-      await markWhatsAppSent(lead.id)
+      
+      // Use API adapter if available
+      if (!isDemoMode()) {
+        await apiAdapter.markWhatsAppSent(lead.id)
+      }
+      
+      setShowConfirmDialog(false)
       fetchLead()
     } catch (error) {
       console.error('Failed to mark sent:', error)
     } finally {
       setWhatsappLoading(false)
     }
+  }
+  
+  const handleMarkSentClick = () => {
+    setShowConfirmDialog(true)
+  }
+  
+  const handleConfirmMarkSent = () => {
+    handleMarkSent()
   }
 
   const statusVariants: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'default'> = {
@@ -125,10 +145,10 @@ export default function LeadDetail() {
               </Button>
               {lead.whatsapp_status !== 'sent' && (
                 <Button
-                  onClick={handleMarkSent}
+                  onClick={handleMarkSentClick}
                   loading={whatsappLoading}
                 >
-                  Mark as Sent
+                  Mark as Manually Sent
                 </Button>
               )}
             </>
@@ -212,6 +232,18 @@ export default function LeadDetail() {
           </Card>
         )}
       </div>
+      
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showConfirmDialog}
+        onConfirm={handleConfirmMarkSent}
+        onCancel={() => setShowConfirmDialog(false)}
+        title="Confirm Manual Send"
+        message="Are you sure you want to mark this WhatsApp message as manually sent? This will update the lead's status and schedule follow-up actions."
+        confirmLabel="Yes, Mark as Sent"
+        cancelLabel="Cancel"
+        variant="primary"
+      />
     </div>
   )
 }

@@ -18,60 +18,45 @@ import {
   mockOutreachMetrics,
   mockTemplatePerformance,
 } from './mockData'
+import { apiAdapter } from './apiEngineAdapter'
 
-// Check if using demo mode
-export const isDemoMode = (): boolean => {
-  const url = localStorage.getItem('engine_api_url')
-  return !url || url === 'http://localhost:8000'
+// Check if using API mode (not demo)
+export const isApiMode = (): boolean => {
+  const mode = localStorage.getItem('dashboard_mode')
+  return mode === 'api'
+}
+
+// Determine which adapter to use
+const getAdapter = () => {
+  return isApiMode() ? apiAdapter : null
 }
 
 // Demo data adapter with API fallback
 class DemoDataAdapter {
-  private apiBaseUrl: string
-  private apiToken: string
-
-  constructor() {
-    this.apiBaseUrl = localStorage.getItem('engine_api_url') || 'http://localhost:8000'
-    this.apiToken = localStorage.getItem('engine_api_token') || ''
-  }
-
-  // Try API first, fall back to demo data
-  private async fetchWithFallback<T>(
-    endpoint: string,
-    mockData: T
-  ): Promise<T> {
-    // If in demo mode, return mock data immediately
-    if (isDemoMode()) {
-      return mockData
-    }
-
-    try {
-      const response = await fetch(`${this.apiBaseUrl}${endpoint}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': this.apiToken ? `Bearer ${this.apiToken}` : '',
-        },
-      })
-
-      if (!response.ok) {
-        console.warn(`API error (${response.status}), using demo data`)
-        return mockData
-      }
-
-      return await response.json()
-    } catch (error) {
-      console.warn('API unavailable, using demo data:', error)
-      return mockData
-    }
-  }
-
   // Dashboard metrics
   async getDashboardMetrics(): Promise<DashboardMetrics> {
-    return this.fetchWithFallback('/api/v1/dashboard/metrics', mockMetrics)
+    const adapter = getAdapter()
+    if (adapter) {
+      try {
+        return await adapter.getDashboardMetrics()
+      } catch (error) {
+        console.warn('API call failed, falling back to demo data:', error)
+      }
+    }
+    return mockMetrics
   }
 
   // Leads
   async getLeads(filters?: LeadFilters): Promise<ApiResponse<Lead[]>> {
+    const adapter = getAdapter()
+    if (adapter) {
+      try {
+        return await adapter.getLeads(filters)
+      } catch (error) {
+        console.warn('API call failed, falling back to demo data:', error)
+      }
+    }
+    
     let filteredLeads = [...mockLeads]
 
     if (filters) {
@@ -92,29 +77,54 @@ class DemoDataAdapter {
       }
     }
 
-    return this.fetchWithFallback('/api/v1/leads', {
+    return {
       data: filteredLeads,
       total: filteredLeads.length,
       page: 1,
       has_more: false,
-    })
+    }
   }
 
   async getLead(leadId: string): Promise<Lead> {
+    const adapter = getAdapter()
+    if (adapter) {
+      try {
+        return await adapter.getLead(leadId)
+      } catch (error) {
+        console.warn('API call failed, falling back to demo data:', error)
+      }
+    }
     const lead = mockLeads.find((l) => l.id === leadId)
-    return this.fetchWithFallback(`/api/v1/leads/${leadId}`, lead || mockLeads[0])
+    return lead || mockLeads[0]
   }
 
   // WhatsApp Queue
   async getWhatsAppQueue(): Promise<ApiResponse<WhatsAppQueueItem[]>> {
-    return this.fetchWithFallback('/api/v1/outreach/whatsapp-queue', {
+    const adapter = getAdapter()
+    if (adapter) {
+      try {
+        return await adapter.getWhatsAppQueue()
+      } catch (error) {
+        console.warn('API call failed, falling back to demo data:', error)
+      }
+    }
+    return {
       data: mockWhatsAppQueue,
       total: mockWhatsAppQueue.length,
-    })
+    }
   }
 
   // Follow-ups
   async getFollowUps(status?: string): Promise<ApiResponse<FollowUp[]>> {
+    const adapter = getAdapter()
+    if (adapter) {
+      try {
+        return await adapter.getFollowUps(status)
+      } catch (error) {
+        console.warn('API call failed, falling back to demo data:', error)
+      }
+    }
+    
     let filtered = [...mockFollowUps]
     
     if (status === 'today') {
@@ -128,31 +138,57 @@ class DemoDataAdapter {
       filtered = filtered.filter((f) => new Date(f.due_date) > now)
     }
 
-    return this.fetchWithFallback(`/api/v1/followups${status ? `?status=${status}` : ''}`, {
+    return {
       data: filtered,
       total: filtered.length,
-    })
+    }
   }
 
   // Activities
   async getActivities(limit = 20): Promise<ApiResponse<Activity[]>> {
-    return this.fetchWithFallback(`/api/v1/activity?limit=${limit}`, {
+    const adapter = getAdapter()
+    if (adapter) {
+      try {
+        return await adapter.getActivities(limit)
+      } catch (error) {
+        console.warn('API call failed, falling back to demo data:', error)
+      }
+    }
+    return {
       data: mockActivities.slice(0, limit),
       total: mockActivities.length,
-    })
+    }
   }
 
   // Reports
   async getOutreachMetrics(startDate: string, endDate: string): Promise<OutreachMetric[]> {
-    return this.fetchWithFallback(
-      `/api/v1/reports/outreach?start_date=${startDate}&end_date=${endDate}`,
-      mockOutreachMetrics
-    )
+    const adapter = getAdapter()
+    if (adapter) {
+      try {
+        return await adapter.getOutreachMetrics(startDate, endDate)
+      } catch (error) {
+        console.warn('API call failed, falling back to demo data:', error)
+      }
+    }
+    return mockOutreachMetrics
   }
 
   async getTemplatePerformance(): Promise<TemplatePerformance[]> {
-    return this.fetchWithFallback('/api/v1/reports/templates', mockTemplatePerformance)
+    const adapter = getAdapter()
+    if (adapter) {
+      try {
+        return await adapter.getTemplatePerformance()
+      } catch (error) {
+        console.warn('API call failed, falling back to demo data:', error)
+      }
+    }
+    return mockTemplatePerformance
   }
 }
 
 export const demoAdapter = new DemoDataAdapter()
+
+// Export utility to check demo mode
+export const isDemoMode = (): boolean => {
+  return !isApiMode()
+}
