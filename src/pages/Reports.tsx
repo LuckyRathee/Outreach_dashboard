@@ -30,6 +30,7 @@ export default function Reports() {
   const [outreachData, setOutreachData] = useState<OutreachMetric[]>([])
   const [templateData, setTemplateData] = useState<TemplatePerformance[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchAllData()
@@ -38,6 +39,7 @@ export default function Reports() {
   const fetchAllData = async () => {
     try {
       setLoading(true)
+      setError(null)
       
       const [metricsData, outreach, templates] = await Promise.all([
         dataAdapter.getDashboardMetrics(),
@@ -46,10 +48,11 @@ export default function Reports() {
       ])
       
       setMetrics(metricsData)
-      setOutreachData(outreach)
-      setTemplateData(templates)
+      setOutreachData(outreach || [])
+      setTemplateData(templates || [])
     } catch (error) {
       console.error('Failed to fetch report data:', error)
+      setError('Failed to load report data. Please check your API connection.')
     } finally {
       setLoading(false)
     }
@@ -60,11 +63,16 @@ export default function Reports() {
   }
 
   const handleExport = () => {
+    if (!outreachData || outreachData.length === 0) {
+      alert('No data to export')
+      return
+    }
+    
     const exportData = outreachData.map((item) => ({
       Date: item.date,
-      'Emails Sent': item.emails_sent,
-      'WhatsApp Sent': item.whatsapp_sent,
-      Responses: item.responses,
+      'Emails Sent': item.emails_sent || 0,
+      'WhatsApp Sent': item.whatsapp_sent || 0,
+      Responses: item.responses || 0,
     }))
     
     exportDataToExcel(exportData, 'outreach_report', 'Outreach Data')
@@ -78,10 +86,25 @@ export default function Reports() {
     )
   }
 
-  // Calculate summary stats
-  const totalEmails = outreachData.reduce((sum, item) => sum + item.emails_sent, 0)
-  const totalWhatsApp = outreachData.reduce((sum, item) => sum + item.whatsapp_sent, 0)
-  const totalResponses = outreachData.reduce((sum, item) => sum + item.responses, 0)
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <h3 className="text-red-800 font-medium mb-2">Error Loading Reports</h3>
+        <p className="text-red-600">{error}</p>
+        <button
+          onClick={fetchAllData}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    )
+  }
+
+  // Calculate summary stats with safe defaults
+  const totalEmails = outreachData?.reduce((sum, item) => sum + (item.emails_sent || 0), 0) || 0
+  const totalWhatsApp = outreachData?.reduce((sum, item) => sum + (item.whatsapp_sent || 0), 0) || 0
+  const totalResponses = outreachData?.reduce((sum, item) => sum + (item.responses || 0), 0) || 0
   const avgResponseRate = totalEmails + totalWhatsApp > 0
     ? Math.round((totalResponses / (totalEmails + totalWhatsApp)) * 100)
     : 0
@@ -124,6 +147,16 @@ export default function Reports() {
           </div>
         </div>
       </div>
+
+      {/* No Data Banner */}
+      {outreachData.length === 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-blue-800">
+            <strong>Note:</strong> Reports endpoints are not yet implemented on the engine. 
+            Data will appear here once the engine provides these analytics.
+          </p>
+        </div>
+      )}
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

@@ -151,14 +151,16 @@ export class ApiEngineAdapter {
   }
 
   // Reports
-  async getOutreachMetrics(startDate: string, endDate: string): Promise<OutreachMetric[]> {
-    return this.fetchApi<OutreachMetric[]>(
-      `/api/v1/reports/outreach?start_date=${startDate}&end_date=${endDate}`
-    )
+  async getOutreachMetrics(_startDate: string, _endDate: string): Promise<OutreachMetric[]> {
+    // Engine doesn't have this endpoint yet - return empty data
+    // TODO: Implement on engine side when needed
+    return []
   }
 
   async getTemplatePerformance(): Promise<TemplatePerformance[]> {
-    return this.fetchApi<TemplatePerformance[]>('/api/v1/reports/templates')
+    // Engine doesn't have this endpoint yet - return empty data
+    // TODO: Implement on engine side when needed
+    return []
   }
 
   // Health check
