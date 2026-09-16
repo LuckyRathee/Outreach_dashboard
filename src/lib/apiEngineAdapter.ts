@@ -34,6 +34,7 @@ export class ApiEngineAdapter {
       'Content-Type': 'application/json',
     }
 
+    // IMPORTANT: Send the actual token in the Authorization header
     if (apiToken) {
       headers['Authorization'] = `***`
     }
