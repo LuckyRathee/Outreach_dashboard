@@ -36,7 +36,7 @@ export class ApiEngineAdapter {
 
     // IMPORTANT: Send the actual token in the Authorization header
     if (apiToken) {
-      headers['Authorization'] = `***`
+      headers['Authorization'] = `Bearer ${apiToken}`
     }
 
     // Merge with any existing headers
