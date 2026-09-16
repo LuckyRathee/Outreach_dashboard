@@ -1,227 +1,216 @@
-# Digital Patron Dashboard
+# Digital Patron CRM Dashboard
 
-A secure React dashboard for B2B lead outreach management with server-side API authentication.
+A modern React dashboard for managing B2B tech lead outreach operations.
 
-## Architecture
-
-```
-Browser Dashboard
-  ↓ HTTPS
-Netlify Function (engine-proxy)
-  ↓ Server-side authentication
-FastAPI Engine API (Azure/Remote)
-  ↓
-Python Outreach Engine
-```
-
-**Security:**
-- ✅ API token never exposed to browser
-- ✅ All requests authenticated server-side
-- ✅ Whitelisted endpoints only
-- ✅ Request validation and timeout
-
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
-
 - Node.js 18+ installed
-- Engine API running and accessible
-- API token from your engine deployment
+- API token for Digital Patron engine
 
-### Local Development
+### Installation
 
 ```bash
-# Install dependencies
+# Navigate to project
 cd D:\HermesDEmos\dashboard
+
+# Install dependencies
 npm install
 
-# Run development server
+# Start development server
 npm run dev
 ```
 
-Dashboard runs at `http://localhost:5173`
+Opens at: `http://localhost:3001`
 
-### Production Deployment
+### First Time Setup
 
-See [NETLIFY_DEPLOYMENT.md](./NETLIFY_DEPLOYMENT.md) for detailed instructions.
+1. Open `http://localhost:3001`
+2. Click gear icon (Settings) in top-right
+3. Enter API configuration:
+   - **API URL:** `https://hermes-vm.tail5e4a2f.ts.net`
+   - **API Token:** `[Get from engine .env file]`
+4. Click "Save & Test Connection"
+5. Dashboard loads automatically
 
-## Configuration
+---
 
-### Environment Variables
+## 📊 Features
 
-Set in Netlify Dashboard → Site Settings → Environment Variables:
+### Home Dashboard
+- Pipeline breakdown chart
+- Quick statistics
+- Recent activity timeline
+- Sync button
 
-```env
-ENGINE_API_BASE_URL=https://hermes-vm.tail5e4a2f.ts.net
-ENGINE_API_TOKEN=your-engine-token-here
-```
-
-### Landing Page
-
-On first load, the dashboard shows a landing page where you enter:
-
-1. **Engine API URL** - Your engine's public URL
-2. **API Token** - Authentication token
-
-Click "Connect to API" to proceed.
-
-## Features
-
-### 📊 Dashboard Home
-- Overview metrics (emails, WhatsApp, follow-ups)
-- Pipeline visualization
-- Recent activity feed
-
-### 👥 Lead Management
-- Filterable lead list
+### Leads Management
+- Paginated lead list (50 per page)
+- Filter by status, city, industry
+- Search leads
 - Lead detail view
-- Bulk operations
 - Export to CSV/Excel
 
-### 💬 WhatsApp Queue
-- Prioritized queue
-- Open WhatsApp → Mark as Sent workflow
-- Confirmation dialogs
-- Real-time updates
+### WhatsApp Outreach
+- Queue of leads ready for outreach
+- Pre-generated WhatsApp URLs
+- One-click open with pre-filled message
+- Manual send confirmation
+- Automatic status tracking
 
-### 📅 Follow-ups
-- Today, overdue, upcoming tabs
-- Reschedule functionality
-- Complete actions
+### Follow-ups
+- View due today, overdue, upcoming
+- Mark as completed
+- Snooze to new date
 
-### 📈 Reports
-- Outreach charts
-- Response rates
-- Template performance
-- Date range filtering
+### Reports
+- Date range selection
+- Summary statistics
+- Response rate charts
+- Lead status distribution
 
-## API Endpoints Used
+---
 
-```http
-GET  /health
-GET  /api/v1/dashboard/metrics
-GET  /api/v1/leads
-GET  /api/v1/leads/{lead_id}
-GET  /api/v1/outreach/whatsapp-queue
-GET  /api/v1/followups
-GET  /api/v1/activity
-POST /api/v1/sync
-POST /api/v1/leads/{lead_id}/whatsapp/opened
-POST /api/v1/leads/{lead_id}/whatsapp/mark-sent
-POST /api/v1/followups/{followup_id}/complete
-```
+## 🛠️ Technology Stack
 
-## Tech Stack
+- **Frontend:** React 18 + TypeScript
+- **Build Tool:** Vite 5
+- **Styling:** Tailwind CSS
+- **Routing:** React Router v6
+- **Icons:** Lucide React
+- **State:** React Hooks + Context
+- **HTTP:** Fetch API
 
-- **React 18** - UI framework
-- **Vite** - Build tool
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **Recharts** - Charts and analytics
-- **Axios** - HTTP client
-- **React Router** - Navigation
-- **Netlify Functions** - Serverless proxy
+---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-D:\HermesDEmos\dashboard\
-├── netlify/
-│   └── functions/
-│       └── engine-proxy.ts      # Secure API proxy
-├── src/
-│   ├── components/
-│   │   ├── common/              # Reusable components
-│   │   ├── home/
-│   │   ├── leads/
-│   │   ├── whatsapp/
-│   │   ├── followups/
-│   │   ├── reports/
-│   │   └── layout/
-│   ├── lib/
-│   │   ├── apiEngineAdapter.ts  # API client
-│   │   ├── dataAdapter.ts       # Unified adapter
-│   │   ├── types.ts             # TypeScript types
-│   │   └── export.ts            # Export utilities
-│   ├── pages/
-│   │   ├── Home.tsx
-│   │   ├── Leads.tsx
-│   │   ├── LeadDetail.tsx
-│   │   ├── WhatsAppQueue.tsx
-│   │   ├── FollowUps.tsx
-│   │   ├── Reports.tsx
-│   │   └── Landing.tsx
-│   ├── hooks/
-│   └── context/
-├── netlify.toml                 # Netlify config
-└── package.json
+src/
+├── components/          # Reusable UI components
+│   ├── common/         # Shared components
+│   ├── home/           # Dashboard-specific
+│   ├── leads/          # Lead management
+│   ├── whatsapp/       # WhatsApp queue
+│   ├── followups/      # Follow-up management
+│   ├── reports/        # Reporting widgets
+│   └── layout/         # App layout
+├── pages/              # Main page components
+├── lib/                # Utilities & API
+│   ├── apiEngineAdapter.ts  # API client
+│   ├── dataAdapter.ts       # Data layer
+│   ├── types.ts             # TypeScript types
+│   └── export.ts            # Export utilities
+├── hooks/              # Custom React hooks
+└── App.tsx             # Main app component
 ```
 
-## Security Features
+---
 
-✅ **No token in browser** - Server-side proxy handles auth  
-✅ **Whitelisted endpoints** - Only allowed paths accepted  
-✅ **Request timeout** - 30-second limit  
-✅ **HTTPS enforcement** - Netlify provides SSL  
-✅ **Confirmation dialogs** - Prevents accidental actions  
-✅ **No secret logging** - Authorization header stripped from logs
+## 🔧 Configuration
 
-## WhatsApp Workflow
+### API Settings
+Stored in browser localStorage:
+- `api_url` - Engine API base URL
+- `api_token` - Authentication token
 
-1. Lead appears in WhatsApp Queue
-2. Click **Open WhatsApp** → Opens in new tab
-3. **Does NOT count as sent**
-4. Manually send message in WhatsApp
-5. Click **Mark as Manually Sent**
-6. Confirmation dialog appears
-7. Confirm → Updates lead status
-8. Lead moves to CONTACTED
-9. Follow-up scheduled
+Update via Settings modal (gear icon).
 
-## Testing
+### Environment Variables (Optional)
+For production deployment:
+```env
+VITE_API_URL=https://hermes-vm.tail5e4a2f.ts.net
+```
 
-### Health Check
+---
 
+## 📦 Build & Deploy
+
+### Build for Production
 ```bash
-curl https://your-dashboard.netlify.app/api/health
+npm run build
 ```
+Creates optimized build in `dist/` folder.
 
-### Verify Token Security
+### Local Preview
+```bash
+npm run preview
+```
+Preview production build locally.
 
-Open browser DevTools → Network tab:
-- ✅ No API token in requests
-- ✅ Only `/api/*` endpoints called
-- ✅ Authorization added server-side
+### Deploy to Netlify
+1. Push to Git repository
+2. Connect Netlify to repo
+3. Build settings:
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+4. Deploy!
 
-## Troubleshooting
+---
 
-### 403 Forbidden
-- Endpoint not whitelisted
-- Add to `ALLOWED_ENDPOINTS` in `netlify/functions/engine-proxy.ts`
+## 🌐 API Endpoints
 
-### 502 Bad Gateway
-- Engine API unreachable
-- Check `ENGINE_API_BASE_URL` environment variable
-- Verify engine is running
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check |
+| `/api/v1/dashboard/metrics` | GET | Dashboard metrics |
+| `/api/v1/leads` | GET | Lead list |
+| `/api/v1/leads/:id` | GET | Lead details |
+| `/api/v1/outreach/whatsapp-queue` | GET | WhatsApp queue |
+| `/api/v1/leads/:id/whatsapp/opened` | POST | Log WhatsApp opened |
+| `/api/v1/leads/:id/whatsapp/mark-sent` | POST | Mark as sent |
+| `/api/v1/followups` | GET | Follow-up list |
+| `/api/v1/followups/:id/complete` | POST | Complete follow-up |
+| `/api/v1/followups/:id/snooze` | POST | Snooze follow-up |
+| `/api/v1/activity` | GET | Activity timeline |
+| `/api/v1/sync` | POST | Trigger sync |
 
-### 504 Gateway Timeout
-- Engine took too long
-- Check engine logs
-- Increase `REQUEST_TIMEOUT` (default 30s)
+---
 
-## Company
+## 📚 Documentation
 
-**Digital Patron** - B2B tech lead outreach for Chandigarh tri-city
+- **Full Documentation:** `PROJECT_DOCUMENTATION.md`
+- **Technical Changes:** `TECHNICAL_CHANGES.md`
+- **API Integration:** See `src/lib/apiEngineAdapter.ts`
 
-- Target: 30-140 employees
-- Industry: B2B technology
-- Location: Chandigarh, Mohali, Panchkula
-- Users: 3-4 team members
+---
 
-## License
+## 🐛 Known Issues
 
-Proprietary - Digital Patron
+- **WebSocket Error in Dev:** `ws://localhost:8081` connection fails - cosmetic only, can be ignored
+- **Reports Empty:** Reports endpoints not implemented on engine yet - shows empty data with message
 
-## Contact
+---
 
-For support, contact the Digital Patron team.
+## 🔒 Security
+
+- **Token Storage:** localStorage (suitable for shared team token)
+- **Production:** Token handled server-side via Netlify Functions
+- **HTTPS:** All API calls use HTTPS
+- **No Credentials:** Passwords/secrets never exposed in code
+
+---
+
+## 👥 Users
+
+**Target Users:** 3-4 team members
+**Authentication:** Single shared API token
+**Access:** Desktop-only (local network or Tailscale)
+
+---
+
+## 📝 License
+
+Copyright © 2026 Digital Patron. All rights reserved.
+
+---
+
+## 🆘 Support
+
+**Local Development:** `http://localhost:3001`
+**Production:** Netlify deployment
+**API Issues:** Check engine logs at `/home/hermesadmin/website-outreach-engine/`
+**Dashboard Issues:** Check browser console (F12)
+
+---
+
+**Built with ❤️ for Digital Patron**

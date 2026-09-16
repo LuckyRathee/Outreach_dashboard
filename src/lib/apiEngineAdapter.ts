@@ -128,11 +128,14 @@ export class ApiEngineAdapter {
 
   // WhatsApp Queue
   async getWhatsAppQueue(): Promise<WhatsAppQueueItem[]> {
-    const data = await this.fetchApi<any[]>('/api/v1/outreach/whatsapp-queue')
+    const response = await this.fetchApi<any>('/api/v1/outreach/whatsapp-queue')
+    
+    // API may return array directly, or wrapped in {data, items, total}
+    const rawItems = Array.isArray(response) ? response : (response.items || response.data || [])
     
     // Transform API response to match dashboard format
     // API returns nested structure, dashboard expects flat fields
-    return data.map(item => ({
+    return rawItems.map((item: any) => ({
       lead_id: item.lead_id,
       company_name: item.business_name || item.company_name || 'Unknown',
       employees: item.employees || 0,

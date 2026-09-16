@@ -16,6 +16,8 @@ export default function WhatsAppQueue() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [confirmItem, setConfirmItem] = useState<WhatsAppQueueItem | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
   useEffect(() => {
     fetchQueue()
@@ -65,6 +67,8 @@ export default function WhatsAppQueue() {
     
     try {
       setActionLoading(confirmItem.lead_id)
+      setError(null)
+      setSuccess(null)
       
       // Call API
       await dataAdapter.markWhatsAppSent(confirmItem.lead_id)
@@ -76,10 +80,20 @@ export default function WhatsAppQueue() {
         )
       )
       
+      // Show success message
+      setSuccess(`✓ Marked as sent for ${confirmItem.company_name}`)
       setConfirmItem(null)
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000)
+      
+      // Refresh dashboard data
       triggerRefresh()
     } catch (error) {
       console.error('Failed to mark sent:', error)
+      const errorMsg = error instanceof Error ? error.message : 'Failed to mark as sent. Please try again.'
+      setError(`Failed to mark as sent: ${errorMsg}`)
+      setConfirmItem(null) // Close dialog on error too
     } finally {
       setActionLoading(null)
     }
@@ -105,6 +119,41 @@ export default function WhatsAppQueue() {
 
   return (
     <div className="space-y-6">
+      {/* Success Message */}
+      {success && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center gap-2">
+            <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-green-800 font-medium">{success}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <svg className="h-5 w-5 text-red-600 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+            <div className="flex-1">
+              <p className="text-red-800 font-medium">Error</p>
+              <p className="text-red-700 text-sm mt-1">{error}</p>
+            </div>
+            <button
+              onClick={() => setError(null)}
+              className="text-red-600 hover:text-red-800"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
         <QueueStats total={total} processed={processed} remaining={remaining} />
