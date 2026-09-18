@@ -122,10 +122,27 @@ export class ApiEngineAdapter {
     const response = await this.fetchApi<any>(`/api/v1/leads${queryString ? '?' + queryString : ''}`)
     
     // API returns {items, total, page, page_size} - transform to {data, total, has_more}
-    const items = response.items || response.data || []
+    const rawItems = response.items || response.data || []
     const total = response.total || 0
     const pageSize = response.page_size || response.limit || 50
     const currentPage = response.page || filters?.page || 1
+    
+    // Transform API lead structure to dashboard expected structure
+    const items = rawItems.map((item: any) => ({
+      id: item.id || item.lead_id || '',
+      company_name: item.company_name || item.business_name || 'Unknown',
+      status: item.status || 'new', // Default to 'new' if missing
+      employees: item.employees || item.employee_count || 0,
+      city: item.city || 'Unknown',
+      industry: item.industry || item.category || 'Unknown',
+      linkedin_url: item.linkedin_url || '',
+      phone: item.phone || '',
+      whatsapp_number: item.whatsapp_number || '',
+      whatsapp_status: item.whatsapp_status || 'pending',
+      notes: item.notes || '',
+      created_at: item.created_at || new Date().toISOString(),
+      updated_at: item.updated_at || new Date().toISOString(),
+    }))
     
     return {
       data: items,

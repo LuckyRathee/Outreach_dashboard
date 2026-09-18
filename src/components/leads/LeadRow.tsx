@@ -39,7 +39,7 @@ export default function LeadRow({ lead, isSelected, onSelect, onClick }: LeadRow
       </td>
       <td className="whitespace-nowrap px-6 py-4">
         <Badge variant={statusVariants[lead.status] || 'default'}>
-          {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+          {lead.status ? lead.status.charAt(0).toUpperCase() + lead.status.slice(1) : 'Unknown'}
         </Badge>
       </td>
       <td className="whitespace-nowrap px-6 py-4 text-gray-500">
