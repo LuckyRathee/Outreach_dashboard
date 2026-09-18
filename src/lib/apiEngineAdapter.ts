@@ -119,7 +119,21 @@ export class ApiEngineAdapter {
     if (filters?.limit) params.append('limit', filters.limit.toString())
 
     const queryString = params.toString()
-    return this.fetchApi<ApiResponse<Lead[]>>(`/api/v1/leads${queryString ? '?' + queryString : ''}`)
+    const response = await this.fetchApi<any>(`/api/v1/leads${queryString ? '?' + queryString : ''}`)
+    
+    // API returns {items, total, page, page_size} - transform to {data, total, has_more}
+    const items = response.items || response.data || []
+    const total = response.total || 0
+    const pageSize = response.page_size || response.limit || 50
+    const currentPage = response.page || filters?.page || 1
+    
+    return {
+      data: items,
+      total,
+      page: currentPage,
+      limit: pageSize,
+      has_more: items.length === pageSize && (currentPage * pageSize) < total
+    }
   }
 
   async getLead(leadId: string): Promise<Lead> {
