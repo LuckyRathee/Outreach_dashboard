@@ -172,7 +172,7 @@ export class ApiEngineAdapter {
     }
     
     // Transform API response to match dashboard format
-    // API returns nested structure, dashboard expects flat fields
+    // API returns both nested (whatsapp.url) and flat (whatsapp_url) structures
     const transformed = rawItems.map((item: any) => {
       const transformed = {
         lead_id: item.lead_id || item.id || '',
@@ -180,9 +180,9 @@ export class ApiEngineAdapter {
         employees: item.employees || item.employee_count || 0,
         city: item.city || 'Unknown',
         industry: item.category || item.industry || 'Unknown',
-        template: item.whatsapp?.message || item.message || '',
+        template: item.whatsapp?.message || item.whatsapp_message || item.message || '',
         whatsapp_url: item.whatsapp?.url || item.whatsapp_url || '',
-        status: item.whatsapp?.status || item.status || 'READY',
+        status: (item.whatsapp?.status || item.whatsapp_status || 'READY').toUpperCase() as 'READY' | 'OPENED' | 'SENT',
         priority_score: item.qualification?.score || item.priority_score || 0,
       }
       console.log('📱 Transformed Item:', transformed)
