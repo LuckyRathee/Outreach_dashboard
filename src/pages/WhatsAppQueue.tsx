@@ -39,18 +39,28 @@ export default function WhatsAppQueue() {
     try {
       setActionLoading(item.lead_id)
       
-      // Call API
-      await dataAdapter.markWhatsAppOpened(item.lead_id)
+      // Open WhatsApp URL immediately in new tab (don't wait for API)
+      if (item.whatsapp_url) {
+        window.open(item.whatsapp_url, '_blank')
+      } else {
+        console.error('No WhatsApp URL found for item:', item)
+        alert('WhatsApp link not available')
+        return
+      }
       
-      // Open WhatsApp URL in new tab
-      window.open(item.whatsapp_url, '_blank')
-      
-      // Update local state
+      // Update local state immediately for responsive UI
       setQueue((prev) =>
         prev.map((i) =>
           i.lead_id === item.lead_id ? { ...i, status: 'OPENED' } : i
         )
       )
+      
+      // Call API in background (non-blocking)
+      dataAdapter.markWhatsAppOpened(item.lead_id).catch((error) => {
+        console.warn('Failed to mark WhatsApp as opened (background):', error)
+        // Don't show error to user since the main action (opening WhatsApp) succeeded
+      })
+      
     } catch (error) {
       console.error('Failed to open WhatsApp:', error)
     } finally {
