@@ -17,12 +17,12 @@ export default function Sidebar() {
           <div className="flex items-center gap-3">
             <img 
               src="/digital-patron-logo.png" 
-              alt="Digital Patron" 
+              alt="DP Logo" 
               className="h-10 w-auto"
             />
             <div className="flex flex-col">
-              <span className="text-lg font-bold text-white leading-tight">Digital Patron</span>
-              <span className="text-xs text-gray-400 -mt-0.5">Outreach Dashboard</span>
+              <span className="text-lg font-bold text-white leading-tight">DP Studios</span>
+              <span className="text-xs text-gray-400 -mt-0.5">Dashboard</span>
             </div>
           </div>
         </div>
@@ -55,7 +55,7 @@ export default function Sidebar() {
             </li>
             <li className="mt-auto">
               <div className="text-xs text-gray-500 px-2">
-                Digital Patron v1.0
+                DP Studios v1.0
               </div>
             </li>
           </ul>

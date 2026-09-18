@@ -16,6 +16,12 @@ export interface Lead {
   notes?: string
   created_at: string
   updated_at: string
+  // Additional fields from API
+  demo_url?: string
+  website_link?: string
+  whatsapp_url?: string
+  whatsapp_message?: string
+  history?: any[]
 }
 
 // Follow-up Types

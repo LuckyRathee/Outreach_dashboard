@@ -6,7 +6,6 @@ import FollowUpTabs from '../components/followups/FollowUpTabs'
 import FollowUpItem from '../components/followups/FollowUpItem'
 import RescheduleModal from '../components/followups/RescheduleModal'
 import { dataAdapter } from '../lib/dataAdapter'
-import { completeFollowUp, rescheduleFollowUp } from '../lib/api'
 import { useRefresh } from '../hooks/useRefresh'
 import type { FollowUp } from '../lib/types'
 
@@ -28,7 +27,7 @@ export default function FollowUps() {
   const fetchFollowUps = async () => {
     try {
       setLoading(true)
-      const status = activeTab === 'all' ? undefined : activeTab
+      const status = activeTab === 'all' ? undefined : activeTab.toUpperCase()
       const response = await dataAdapter.getFollowUps(status)
       setFollowUps(response.data || [])
     } catch (error) {
@@ -41,7 +40,7 @@ export default function FollowUps() {
   const handleComplete = async (followUpId: string) => {
     try {
       setActionLoading(followUpId)
-      await completeFollowUp(followUpId)
+      await dataAdapter.completeFollowUp(followUpId)
       setFollowUps((prev) => prev.filter((f) => f.id !== followUpId))
       triggerRefresh()
     } catch (error) {
@@ -51,12 +50,12 @@ export default function FollowUps() {
     }
   }
 
-  const handleReschedule = async (newDate: string, reason: string) => {
+  const handleReschedule = async (newDate: string, _reason: string) => {
     if (!rescheduleModal.followUp) return
     
     try {
       setActionLoading(rescheduleModal.followUp.id)
-      await rescheduleFollowUp(rescheduleModal.followUp.id, newDate, reason)
+      await dataAdapter.snoozeFollowUp(rescheduleModal.followUp.id, newDate)
       fetchFollowUps()
     } catch (error) {
       console.error('Failed to reschedule follow-up:', error)

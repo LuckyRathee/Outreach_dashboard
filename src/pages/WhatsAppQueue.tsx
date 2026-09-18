@@ -75,13 +75,21 @@ export default function WhatsAppQueue() {
   const handleMarkSent = async () => {
     if (!confirmItem) return
     
+    console.log('🔵 Mark as Sent - Starting for lead:', confirmItem.lead_id)
+    
     try {
       setActionLoading(confirmItem.lead_id)
       setError(null)
       setSuccess(null)
       
+      console.log('🔵 Calling API: markWhatsAppSent')
+      console.log('🔵 Lead ID:', confirmItem.lead_id)
+      console.log('🔵 Payload:', { confirmation: true, actor: 'dashboard-user' })
+      
       // Call API
       await dataAdapter.markWhatsAppSent(confirmItem.lead_id)
+      
+      console.log('✅ API call successful')
       
       // Update local state
       setQueue((prev) =>
@@ -100,7 +108,7 @@ export default function WhatsAppQueue() {
       // Refresh dashboard data
       triggerRefresh()
     } catch (error) {
-      console.error('Failed to mark sent:', error)
+      console.error('❌ Failed to mark sent:', error)
       const errorMsg = error instanceof Error ? error.message : 'Failed to mark as sent. Please try again.'
       setError(`Failed to mark as sent: ${errorMsg}`)
       setConfirmItem(null) // Close dialog on error too

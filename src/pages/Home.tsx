@@ -26,13 +26,27 @@ export default function Home() {
       setLoading(true)
       setError(null)
       
-      const [metricsData, activitiesData] = await Promise.all([
+      // Fetch all data sources in parallel (as recommended by API docs)
+      const [metricsData, activitiesData, whatsappQueue, followups] = await Promise.all([
         dataAdapter.getDashboardMetrics(),
         dataAdapter.getActivities(20),
+        dataAdapter.getWhatsAppQueue(),
+        dataAdapter.getFollowUps(),
       ])
       
       setMetrics(metricsData)
       setActivities(activitiesData.data || [])
+      
+      // Calculate additional metrics from actual data
+      const whatsappPending = whatsappQueue?.length || 0
+      const dueFollowups = followups?.data?.filter((f: any) => f.status === 'DUE').length || 0
+      
+      // Enhance metrics with real counts
+      if (metricsData) {
+        metricsData.whatsapp_queue_count = whatsappPending
+        metricsData.followups_due_today = dueFollowups
+      }
+      
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err)
       setError('Failed to load dashboard data. Please check API connection.')
@@ -76,33 +90,32 @@ export default function Home() {
       {/* Metric Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
-          title="Emails Sent Today"
-          value={metrics?.emails_sent_today ?? 0}
-          trend="+5 today"
-          icon={<EmailIcon />}
-          onClick={() => navigate('/reports')}
+          title="Total Leads"
+          value={metrics?.total_leads ?? 0}
+          trend="qualified"
+          icon={<UsersIcon />}
+          onClick={() => navigate('/leads')}
         />
         <MetricCard
           title="WhatsApp Queue"
           value={metrics?.whatsapp_queue_count ?? 0}
-          trend={metrics && metrics.whatsapp_queue_count > 0 ? 'pending' : 'empty'}
+          trend={metrics && metrics.whatsapp_queue_count > 0 ? 'pending' : 'ready'}
           icon={<ChatIcon />}
           onClick={() => navigate('/whatsapp')}
         />
         <MetricCard
-          title="Follow-ups Due"
-          value={metrics?.followups_due_today ?? 0}
-          trend="today"
-          icon={<CalendarIcon />}
-          alert={metrics ? metrics.followups_due_today > 10 : false}
-          onClick={() => navigate('/followups')}
+          title="Ready to Approach"
+          value={metrics?.ready_to_approach ?? 0}
+          trend="new leads"
+          icon={<TargetIcon />}
+          onClick={() => navigate('/leads?status=new')}
         />
         <MetricCard
-          title="Replies Today"
-          value={metrics?.replies_today ?? 0}
-          trend="responses"
-          icon={<ReplyIcon />}
-          onClick={() => navigate('/leads?status=responded')}
+          title="Messages Sent"
+          value={metrics?.real_messages_sent ?? 0}
+          trend="real outreach"
+          icon={<EmailIcon />}
+          onClick={() => navigate('/reports')}
         />
       </div>
 
@@ -185,6 +198,14 @@ export default function Home() {
 }
 
 // Icon components
+function UsersIcon() {
+  return (
+    <svg className="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+    </svg>
+  )
+}
+
 function EmailIcon() {
   return (
     <svg className="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -201,18 +222,11 @@ function ChatIcon() {
   )
 }
 
-function CalendarIcon() {
+function TargetIcon() {
   return (
     <svg className="h-6 w-6 text-warning" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-    </svg>
-  )
-}
-
-function ReplyIcon() {
-  return (
-    <svg className="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
     </svg>
   )
 }

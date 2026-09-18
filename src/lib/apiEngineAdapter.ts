@@ -8,6 +8,8 @@ import type {
   Activity,
   OutreachMetric,
   TemplatePerformance,
+  LeadStatus,
+  WhatsAppStatus,
 } from './types'
 
 // Get API configuration
@@ -154,7 +156,32 @@ export class ApiEngineAdapter {
   }
 
   async getLead(leadId: string): Promise<Lead> {
-    return this.fetchApi<Lead>(`/api/v1/leads/${leadId}`)
+    const response = await this.fetchApi<any>(`/api/v1/leads/${leadId}`)
+    
+    console.log('📋 Lead Detail Raw Response:', response)
+    
+    // Transform API response to match dashboard format
+    return {
+      id: response.lead_id || response.id || '',
+      company_name: response.business_name || response.company_name || 'Unknown',
+      status: (response.current_status || response.status || 'new').toLowerCase().replace('qualified', 'qualified') as LeadStatus,
+      employees: response.employees || response.employee_count || 0,
+      city: response.city || 'Unknown',
+      industry: response.industry || response.category || 'Unknown',
+      linkedin_url: response.linkedin_url || '',
+      phone: response.phone || '',
+      whatsapp_number: response.whatsapp_number || response.phone || '',
+      whatsapp_status: (response.whatsapp?.status || response.whatsapp_status || 'pending').toLowerCase() as WhatsAppStatus,
+      notes: response.notes || response.whatsapp_message || '',
+      created_at: response.created_at || new Date().toISOString(),
+      updated_at: response.updated_at || new Date().toISOString(),
+      // Additional fields from API
+      demo_url: response.demo_url,
+      website_link: response.website_link,
+      whatsapp_url: response.whatsapp?.url || response.whatsapp_url,
+      whatsapp_message: response.whatsapp?.message || response.whatsapp_message,
+      history: response.history || [],
+    }
   }
 
   // WhatsApp Queue
@@ -210,7 +237,26 @@ export class ApiEngineAdapter {
   // Follow-ups
   async getFollowUps(status?: string): Promise<ApiResponse<FollowUp[]>> {
     const queryString = status ? `?status=${status}` : ''
-    return this.fetchApi<ApiResponse<FollowUp[]>>(`/api/v1/followups${queryString}`)
+    const response = await this.fetchApi<any>(`/api/v1/followups${queryString}`)
+    
+    // API may return array directly or wrapped
+    const rawItems = Array.isArray(response) ? response : (response.items || response.data || [])
+    
+    // Transform API response to match dashboard format
+    const items = rawItems.map((item: any) => ({
+      id: item.id || '',
+      lead_id: item.lead_id || '',
+      company_name: item.company_name || 'Unknown',
+      due_date: item.due_at || item.due_date || new Date().toISOString(),
+      status: (item.status || 'DUE').toUpperCase() as 'DUE' | 'COMPLETED',
+      notes: item.message || item.notes || '',
+      created_at: item.created_at || new Date().toISOString(),
+    }))
+    
+    return {
+      data: items,
+      total: items.length,
+    }
   }
 
   async completeFollowUp(followUpId: string, actor: string = 'dashboard-user'): Promise<void> {
@@ -229,7 +275,25 @@ export class ApiEngineAdapter {
 
   // Activities
   async getActivities(limit = 50): Promise<ApiResponse<Activity[]>> {
-    return this.fetchApi<ApiResponse<Activity[]>>(`/api/v1/activity?limit=${limit}`)
+    const response = await this.fetchApi<any>(`/api/v1/activity?limit=${limit}`)
+    
+    // API may return array directly or wrapped
+    const rawItems = Array.isArray(response) ? response : (response.items || response.data || [])
+    
+    // Transform API response to match dashboard format
+    const items = rawItems.map((item: any) => ({
+      id: item.id || '',
+      type: item.event_type || item.type || 'lead_created',
+      lead_id: item.lead_id || '',
+      company_name: item.company_name || item.business_name || 'Unknown',
+      timestamp: item.timestamp || item.created_at || new Date().toISOString(),
+      details: item.details || item.message || '',
+    }))
+    
+    return {
+      data: items,
+      total: items.length,
+    }
   }
 
   // Sync

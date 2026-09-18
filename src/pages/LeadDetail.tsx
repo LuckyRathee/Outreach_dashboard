@@ -38,16 +38,24 @@ export default function LeadDetail() {
     try {
       setWhatsappLoading(true)
       
-      // Call API
-      await dataAdapter.markWhatsAppOpened(lead.id)
+      // Open WhatsApp URL from API (if available) or construct from phone number
+      const whatsappUrl = lead.whatsapp_url || 
+        (lead.whatsapp_number ? `https://wa.me/${lead.whatsapp_number}?text=Hello` : null)
       
-      // Open WhatsApp URL
-      if (lead.whatsapp_number) {
-        const url = `https://wa.me/${lead.whatsapp_number}?text=Hello`
-        window.open(url, '_blank')
+      if (whatsappUrl) {
+        // Open WhatsApp immediately (non-blocking)
+        window.open(whatsappUrl, '_blank')
+        
+        // Update API in background
+        dataAdapter.markWhatsAppOpened(lead.id).catch((error) => {
+          console.warn('Failed to mark WhatsApp as opened (background):', error)
+        })
+        
+        // Refresh lead data
+        fetchLead()
+      } else {
+        alert('WhatsApp URL not available for this lead')
       }
-      
-      fetchLead()
     } catch (error) {
       console.error('Failed to open WhatsApp:', error)
     } finally {
@@ -180,6 +188,26 @@ export default function LeadDetail() {
                 )}
               </dd>
             </div>
+            {lead.website_link && (
+              <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt className="text-sm font-medium text-gray-500">Website</dt>
+                <dd className="mt-1 text-sm sm:col-span-2 sm:mt-0">
+                  <a href={lead.website_link} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700">
+                    {lead.website_link}
+                  </a>
+                </dd>
+              </div>
+            )}
+            {lead.demo_url && (
+              <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt className="text-sm font-medium text-gray-500">AI Demo</dt>
+                <dd className="mt-1 text-sm sm:col-span-2 sm:mt-0">
+                  <a href={lead.demo_url} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700 font-medium">
+                    View Generated Demo Site →
+                  </a>
+                </dd>
+              </div>
+            )}
           </dl>
         </Card>
 
