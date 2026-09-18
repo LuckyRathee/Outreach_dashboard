@@ -161,22 +161,36 @@ export class ApiEngineAdapter {
   async getWhatsAppQueue(): Promise<WhatsAppQueueItem[]> {
     const response = await this.fetchApi<any>('/api/v1/outreach/whatsapp-queue')
     
+    console.log('📱 WhatsApp Queue Raw Response:', response)
+    
     // API may return array directly, or wrapped in {data, items, total}
     const rawItems = Array.isArray(response) ? response : (response.items || response.data || [])
     
+    console.log('📱 WhatsApp Queue Items Count:', rawItems.length)
+    if (rawItems.length > 0) {
+      console.log('📱 First Item Structure:', rawItems[0])
+    }
+    
     // Transform API response to match dashboard format
     // API returns nested structure, dashboard expects flat fields
-    return rawItems.map((item: any) => ({
-      lead_id: item.lead_id,
-      company_name: item.business_name || item.company_name || 'Unknown',
-      employees: item.employees || 0,
-      city: item.city || 'Unknown',
-      industry: item.category || item.industry || 'Unknown',
-      template: item.whatsapp?.message || '',
-      whatsapp_url: item.whatsapp?.url || '',
-      status: item.whatsapp?.status || 'READY',
-      priority_score: item.qualification?.score || 0,
-    }))
+    const transformed = rawItems.map((item: any) => {
+      const transformed = {
+        lead_id: item.lead_id || item.id || '',
+        company_name: item.business_name || item.company_name || 'Unknown',
+        employees: item.employees || item.employee_count || 0,
+        city: item.city || 'Unknown',
+        industry: item.category || item.industry || 'Unknown',
+        template: item.whatsapp?.message || item.message || '',
+        whatsapp_url: item.whatsapp?.url || item.whatsapp_url || '',
+        status: item.whatsapp?.status || item.status || 'READY',
+        priority_score: item.qualification?.score || item.priority_score || 0,
+      }
+      console.log('📱 Transformed Item:', transformed)
+      return transformed
+    })
+    
+    console.log('📱 Final Transformed Queue:', transformed)
+    return transformed
   }
 
   async markWhatsAppOpened(leadId: string, actor: string = 'dashboard-user'): Promise<void> {
